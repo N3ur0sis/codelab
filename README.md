@@ -6,8 +6,8 @@
 
 ## Current Version
 
-**Version 0.1.0 (Initial Commit)**  
-Foundational setup with backend, frontend, and Dockerized infrastructure.
+**Version 0.1.2 (Starter Project)**  
+Foundational setup with backend, frontend, and Dockerized infrastructure with ESLint and Prettier configured for clean code.
 
 ---
 
@@ -143,12 +143,6 @@ To work with the database locally using Prisma Studio:
    ```bash
    npx prisma studio
    ```
-
-Alternatively, run Prisma Studio directly inside the backend container:
-
-```bash
-docker exec -it backend npx prisma studio
-```
 
 ---
 

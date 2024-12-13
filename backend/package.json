@@ -1,6 +1,6 @@
 {
   "name": "codelab-backend",
-  "version": "1.0.0",
+  "version": "0.1.2",
   "description": "Backend service for the CodeLab learning management system.",
   "main": "index.js",
   "scripts": {

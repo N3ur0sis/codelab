@@ -2,7 +2,7 @@
 
 # Use the official Node.js image as the base image
 # Specify the Node.js version (LTS recommended for stability)
-FROM node:22-alpine
+FROM node:22
 
 # Set the working directory inside the container
 WORKDIR /usr/src/app
