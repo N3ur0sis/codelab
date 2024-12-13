@@ -23,8 +23,11 @@ RUN npx prisma generate
 # Copy the rest of the application code to the working directory
 COPY . .
 
+# Install nodemon globally for hot reloading
+RUN npm install -g nodemon
+
 # Expose the application port (4000 in this case)
 EXPOSE 4000
 
 # Define the command to start the application
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev"]

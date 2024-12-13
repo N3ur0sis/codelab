@@ -74,7 +74,7 @@ Before you begin, ensure you have the following installed:
 3. Build and start the application using Docker Compose:
 
    ```bash
-   ENV=development docker-compose up --build
+   ENV=development docker compose --env-file .env.development up --build
    ```
 
 4. Access the application:
@@ -123,7 +123,7 @@ If you need to work only on the frontend:
 2. Run the frontend application:
 
    ```bash
-   ENV=development docker-compose up frontend
+   ENV=development docker compose --env-file .env.development up --build
    ```
 
 3. Access the frontend at `http://localhost:3000`.

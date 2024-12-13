@@ -5,12 +5,17 @@ services:
     build:
       context: ./frontend
       dockerfile: frontend.dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     ports:
       - "3000:3000"
     depends_on:
       - backend
     env_file:
       - .env.development
+    environment:
+      - NODE_ENV=development
+
 
   backend:
     container_name: backend
@@ -24,6 +29,10 @@ services:
       - db
     env_file:
       - .env.development
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules # Avoid syncing node_modules to host
+      - ./backend/prisma:/usr/src/app/prisma
 
   db:
     container_name: db

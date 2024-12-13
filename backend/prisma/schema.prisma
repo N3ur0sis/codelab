@@ -13,9 +13,28 @@ datasource db {
 // - id: Unique identifier for each user (auto-incrementing integer).
 // - name: Name of the user (string).
 // - email: Email of the user (string, must be unique).
+// - githubId: Unique identifier for the user on GitHub (string).
+// - accessToken: Access token for the user's GitHub account (string).
+// - createdAt: Timestamp when the user was created (datetime).
 //
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String?  @unique
+  githubId    String?  @unique
+  accessToken String?
+  createdAt   DateTime @default(now())
+}
+
+// Session model respresents the user's session.
+// Fields:
+// - id: Unique identifier for each session (auto-incrementing integer).
+// - sid: Session ID (string).
+// - data: Session data (JSON).
+// - expiresAt: Timestamp when the session expires (datetime).
+model Session {
+  id        String   @id @default(cuid())
+  sid       String   @unique
+  data      String   @db.Text
+  expiresAt DateTime
 }
