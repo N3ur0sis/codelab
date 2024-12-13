@@ -1,0 +1,40 @@
+services:
+  frontend:
+    container_name: frontend
+    image: frontend
+    build:
+      context: ./frontend
+      dockerfile: frontend.dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    env_file:
+      - .env.development
+
+  backend:
+    container_name: backend
+    image: backend
+    build:
+      context: ./backend
+      dockerfile: backend.dockerfile
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+    env_file:
+      - .env.development
+
+  db:
+    container_name: db
+    image: postgres:12
+    restart: always
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env.development
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata: {}

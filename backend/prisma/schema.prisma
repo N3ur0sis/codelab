@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//
+// User model represents the application's users.
+// Fields:
+// - id: Unique identifier for each user (auto-incrementing integer).
+// - name: Name of the user (string).
+// - email: Email of the user (string, must be unique).
+//
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+}
