@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "prisma:studio": "npx prisma studio"
+    "prisma:studio": "npx prisma studio",
+    "format": "prettier --write \"**/*.{js,ts,html,css,md,json}\"",
+    "lint": "eslint . ",
+    "lint:fix": "eslint . --fix "
   },
   "keywords": [
     "backend",
@@ -22,6 +25,11 @@
     "express": "^4.18.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "@eslint/js": "^9.16.0",
+    "eslint": "^9.16.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.13.0",
+    "nodemon": "^3.1.9",
+    "prettier": "^3.4.2"
   }
 }

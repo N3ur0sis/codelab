@@ -7,9 +7,9 @@
 
 'use client';
 
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import CardComponent from "@/components/CardComponent";
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import CardComponent from '@/components/CardComponent';
 
 // Define the structure of a user object
 interface User {
@@ -45,27 +45,25 @@ export default function Home() {
       }
     };
     fetchData();
-  }, []);
+  }, [apiURL]);
 
   /**
    * JSX Structure
    * Renders a main section containing a list of user cards.
    */
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-100">
-      <div className="space-y-4 w-full max-w-2xl">
-        <h1 className="text-2xl font-bold text-gray-800 text-center">
-          User Management App
-        </h1>
+    <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 p-4">
+      <div className="w-full max-w-2xl space-y-4">
+        <h1 className="text-center text-2xl font-bold text-gray-800">User Management App</h1>
 
         <div className="space-y-2">
           {users.map((user) => (
             <div
               key={user.id}
-              className="flex items-center justify-between bg-white p-4 rounded-lg shadow"
+              className="flex items-center justify-between rounded-lg bg-white p-4 shadow"
             >
               <CardComponent card={user} />
-              <button className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">
+              <button className="rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600">
                 Delete User
               </button>
             </div>

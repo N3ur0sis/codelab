@@ -29,10 +29,10 @@ app.use(express.json());
  * It is useful for enabling communication between the frontend and backend.
  */
 app.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    next();
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  next();
 });
 
 /**
@@ -43,11 +43,11 @@ app.use((req, res, next) => {
  * Returns a JSON response with a status message.
  */
 app.get('/health', (req, res) => {
-    try {
-        res.status(200).json({ message: 'API is running' });
-    } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error : ' + error.message });
-    }
+  try {
+    res.status(200).json({ message: 'API is running' });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error : ' + error.message });
+  }
 });
 
 /**
@@ -58,12 +58,12 @@ app.get('/health', (req, res) => {
  * Returns an array of user objects.
  */
 app.get('/users', async (req, res) => {
-    try {
-        const users = await prisma.user.findMany();
-        res.status(200).json(users);
-    } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error : ' + error.message });
-    }
+  try {
+    const users = await prisma.user.findMany();
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error : ' + error.message });
+  }
 });
 
 /**
@@ -74,17 +74,17 @@ app.get('/users', async (req, res) => {
  * Returns the user object if found; otherwise, returns a 404 error.
  */
 app.get('/users/:id', async (req, res) => {
-    try {
-        const id = req.params.id;
-        const user = await prisma.user.findUnique({ where: { id: Number(id) } });
-        if (!user) {
-            res.status(404).json({ message: 'User not found' });
-        } else {
-            res.status(200).json(user);
-        }
-    } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error : ' + error.message });
+  try {
+    const id = req.params.id;
+    const user = await prisma.user.findUnique({ where: { id: Number(id) } });
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+    } else {
+      res.status(200).json(user);
     }
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error : ' + error.message });
+  }
 });
 
 /**
@@ -96,13 +96,13 @@ app.get('/users/:id', async (req, res) => {
  * Returns the created user object.
  */
 app.post('/users', async (req, res) => {
-    try {
-        const { name, email } = req.body;
-        const user = await prisma.user.create({ data: { name, email } });
-        res.status(201).json(user);
-    } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error : ' + error.message });
-    }
+  try {
+    const { name, email } = req.body;
+    const user = await prisma.user.create({ data: { name, email } });
+    res.status(201).json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error : ' + error.message });
+  }
 });
 
 /**
@@ -114,17 +114,17 @@ app.post('/users', async (req, res) => {
  * Returns the updated user object.
  */
 app.put('/users/:id', async (req, res) => {
-    try {
-        const id = req.params.id;
-        const { name, email } = req.body;
-        const user = await prisma.user.update({ 
-            where: { id: Number(id) }, 
-            data: { name, email },
-        });
-        res.status(200).json(user);
-    } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error : ' + error.message });
-    }
+  try {
+    const id = req.params.id;
+    const { name, email } = req.body;
+    const user = await prisma.user.update({
+      where: { id: Number(id) },
+      data: { name, email },
+    });
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error : ' + error.message });
+  }
 });
 
 /**
@@ -135,13 +135,13 @@ app.put('/users/:id', async (req, res) => {
  * Returns a success message upon successful deletion.
  */
 app.delete('/users/:id', async (req, res) => {
-    try {
-        const id = req.params.id;
-        await prisma.user.delete({ where: { id: Number(id) } });
-        res.status(200).json({ message: 'User deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error : ' + error.message });
-    }
+  try {
+    const id = req.params.id;
+    await prisma.user.delete({ where: { id: Number(id) } });
+    res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error : ' + error.message });
+  }
 });
 
 /**
@@ -150,5 +150,5 @@ app.delete('/users/:id', async (req, res) => {
  */
 const PORT = process.env.port || 4000;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });

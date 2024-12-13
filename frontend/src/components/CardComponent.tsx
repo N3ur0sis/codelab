@@ -6,7 +6,7 @@
  * management system.
  */
 
-import React from "react";
+import React from 'react';
 
 // Define the structure of a card object
 interface Card {
@@ -26,9 +26,9 @@ interface Card {
  */
 const CardComponent: React.FC<{ card: Card }> = ({ card }) => {
   return (
-    <div className="bg-white shadow-lg rounded-lg p-2 mb-2 hover:bg-gray-100">
+    <div className="mb-2 rounded-lg bg-white p-2 shadow-lg hover:bg-gray-100">
       <h3 className="text-sm text-gray-600">{card.id}</h3>
-      <h3 className="text-lg text-gray-800 font-semibold">{card.name}</h3>
+      <h3 className="text-lg font-semibold text-gray-800">{card.name}</h3>
       <p className="text-md text-gray-700">{card.email}</p>
     </div>
   );
