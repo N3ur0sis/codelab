@@ -1,6 +1,6 @@
 {
   "name": "codelab-backend",
-  "version": "0.1.2",
+  "version": "0.3.0",
   "description": "Backend service for the CodeLab learning management system.",
   "main": "src/index.js",
   "scripts": {
@@ -10,6 +10,9 @@
     "format": "prettier --write \"**/*.{js,ts,html,css,md,json}\"",
     "lint": "eslint . ",
     "lint:fix": "eslint . --fix "
+  },
+  "prisma": {
+  "seed": "node prisma/seed.js"
   },
   "keywords": [
     "backend",

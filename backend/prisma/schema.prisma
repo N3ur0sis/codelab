@@ -1,29 +1,25 @@
+// Define the Prisma client generator, specifying the JavaScript client for database access.
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client-js" // Generates the Prisma client for Node.js
 }
 
+// Define the database connection with PostgreSQL as the provider.
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "postgresql" // Specifies PostgreSQL as the database provider
+  url      = env("DATABASE_URL") // Fetches the connection string from an environment variable
 }
 
-//
-// User model represents the application's users.
-// Fields:
-// - id: Unique identifier for each user (auto-incrementing integer).
-// - name: Name of the user (string).
-// - email: Email of the user (string, must be unique).
-// - githubId: Unique identifier for the user on GitHub (string).
-// - accessToken: Access token for the user's GitHub account (string).
-// - createdAt: Timestamp when the user was created (datetime).
-//
+// The User model represents application users.
 model User {
-  id          Int      @id @default(autoincrement())
-  name        String
-  email       String?  @unique
-  githubId    String?  @unique
-  accessToken String?
-  createdAt   DateTime @default(now())
+  id            Int           @id @default(autoincrement()) // Primary key, auto-incrementing integer
+  name          String // Name of the user
+  email         String        @unique // Email address, must be unique
+  githubId      String?       @unique // Optional GitHub ID, must be unique if provided
+  accessToken   String? // Optional GitHub OAuth access token
+  avatarUrl     String? // Optional URL to the user's avatar
+  createdAt     DateTime      @default(now()) // Timestamp of when the user was created
+  enrollments   Enrollment[] // Relationship to the Enrollment model, tracks user challenge enrollments
+  stageStatuses StageStatus[] // Relationship to the StageStatus model, tracks stage-level progress
 }
 
 // Session model respresents the user's session.
@@ -37,4 +33,58 @@ model Session {
   sid       String   @unique
   data      String   @db.Text
   expiresAt DateTime
+}
+
+// The Challenge model represents coding challenges or courses.
+model Challenge {
+  id            Int          @id @default(autoincrement()) // Primary key, auto-incrementing integer
+  title         String // Title of the challenge
+  description   String // Detailed description of the challenge
+  difficulty    String? // Optional difficulty level (e.g., Easy, Medium, Hard)
+  estimatedTime Int? // Optional estimated time to complete in minutes
+  prerequisites Int[] // Array of challenge IDs that are prerequisites for this challenge
+  stages        Stage[] // Relationship to the Stage model, contains the stages of this challenge
+  createdAt     DateTime     @default(now()) // Timestamp of when the challenge was created
+  Enrollment    Enrollment[] // Relationship to the Enrollment model, tracks user enrollments for this challenge
+}
+
+// The Stage model represents individual stages or levels within a challenge.
+model Stage {
+  id          Int           @id @default(autoincrement()) // Primary key, auto-incrementing integer
+  title       String // Title of the stage
+  description String // Detailed description of the stage
+  order       Int // Order of the stage within the challenge
+  challengeId Int // Foreign key referencing the Challenge model
+  challenge   Challenge     @relation(fields: [challengeId], references: [id]) // Relationship to the Challenge model
+  StageStatus StageStatus[] // Relationship to the StageStatus model, tracks user progress for this stage
+
+  @@unique([challengeId, order]) // Ensures that each stage order is unique within a challenge
+}
+
+// The Enrollment model tracks user enrollments in challenges and their progress.
+model Enrollment {
+  id           Int       @id @default(autoincrement()) // Primary key, auto-incrementing integer
+  userId       Int // Foreign key referencing the User model
+  challengeId  Int // Foreign key referencing the Challenge model
+  currentStage Int       @default(0) // Tracks the user's current stage in the challenge
+  repoUrl      String? // Optional URL to the user's repository for the challenge
+  enrolledAt   DateTime  @default(now()) // Timestamp of when the user enrolled in the challenge
+  finishedAt   DateTime? // Optional timestamp of when the challenge was completed
+  status       String    @default("in_progress") // Challenge status (e.g., in_progress, completed, failed)
+  user         User      @relation(fields: [userId], references: [id]) // Relationship to the User model
+  challenge    Challenge @relation(fields: [challengeId], references: [id]) // Relationship to the Challenge model
+}
+
+// The StageStatus model tracks a user's progress for each stage within a challenge.
+model StageStatus {
+  id          Int       @id @default(autoincrement()) // Primary key, auto-incrementing integer
+  userId      Int // Foreign key referencing the User model
+  stageId     Int // Foreign key referencing the Stage model
+  completed   Boolean   @default(false) // Indicates whether the user has completed the stage
+  startedAt   DateTime? // Optional timestamp of when the stage was started
+  completedAt DateTime? // Optional timestamp of when the stage was completed
+  user        User      @relation(fields: [userId], references: [id]) // Relationship to the User model
+  stage       Stage     @relation(fields: [stageId], references: [id]) // Relationship to the Stage model
+
+  @@unique([userId, stageId]) // Ensures a user has a unique status for each stage
 }

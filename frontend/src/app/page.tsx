@@ -1,29 +1,32 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
- * Home.tsx - Home page component for the frontend application.
+ * page.tsx - Main homepage of the application.
  *
  * Key Features:
- * - Dynamically displays user information post-authentication.
- * - Shows a fallback message for unauthenticated users.
- * - Designed with a simple and responsive UI using Tailwind CSS.
+ * - Shows a "Login" button for unauthenticated users.
+ * - Displays a list of challenges for authenticated users.
+ * - Redirects to the challenge page when a challenge is selected.
  */
 
 'use client';
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
-// Backend URL from environment variable
+// Backend API URL from environment variables
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
-interface User {
+interface Challenge {
   id: number;
-  name: string;
-  email?: string;
+  title: string;
+  description: string;
 }
 
-const Home: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
+const Homepage: React.FC = () => {
+  const [user, setUser] = useState<{ name: string } | null>(null);
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   /**
    * Fetch user session details from the backend.
@@ -35,32 +38,78 @@ const Home: React.FC = () => {
           withCredentials: true,
         });
         setUser(response.data);
-      } catch (err) {
-        setUser(null); // Reset user state if not authenticated
+      } catch {
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
     };
     fetchUser();
   }, []);
 
   /**
-   * JSX Structure
-   * Displays a welcome message for authenticated users and fallback for unauthenticated users.
+   * Fetch challenges from the backend.
    */
+  useEffect(() => {
+    const fetchChallenges = async () => {
+      if (!user) return; // Fetch challenges only if the user is logged in
+      try {
+        const response = await axios.get(`${BACKEND_URL}/challenges`, {
+          withCredentials: true,
+        });
+        setChallenges(response.data);
+      } catch (err) {
+        console.error('Error fetching challenges:', err);
+      }
+    };
+    fetchChallenges();
+  }, [user]);
+
+  /**
+   * Handle challenge selection.
+   */
+  const handleChallengeClick = (challengeId: number) => {
+    router.push(`/challenges/${challengeId}`);
+  };
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-100">
-      {user ? (
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Welcome back, {user.name}!
-          </h1>
-        </div>
+    <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+      {!user ? (
+        <button
+          onClick={() => (window.location.href = `${BACKEND_URL}/auth/github`)}
+          className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
+        >
+          Please Login
+        </button>
       ) : (
-        <h1 className="text-2xl font-bold text-gray-800">
-          Please log in to continue.
-        </h1>
+        <>
+          <h1 className="text-2xl font-bold">Welcome, {user.name}!</h1>
+          <div className="mt-6 w-full max-w-4xl">
+            {challenges.length > 0 ? (
+              <ul className="space-y-4">
+                {challenges.map((challenge) => (
+                  <li
+                    key={challenge.id}
+                    className="p-4 bg-white shadow-md rounded-md cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleChallengeClick(challenge.id)}
+                  >
+                    <h2 className="text-lg font-bold">{challenge.title}</h2>
+                    <p>{challenge.description}</p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No challenges available at the moment.</p>
+            )}
+          </div>
+        </>
       )}
     </main>
   );
 };
 
-export default Home;
+export default Homepage;

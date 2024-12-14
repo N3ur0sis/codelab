@@ -6,8 +6,8 @@
 
 ## Current Version
 
-**Version 0.1.2 (Starter Project)**  
-Foundational setup with backend, frontend, and Dockerized infrastructure with ESLint and Prettier configured for clean code.
+**Version 0.3.0 (Challenges features)**  
+Solid base for the challenge enrollment system, stages, and a scalable architecture. Coming up, is the integration of Github App with webhook for the completion of a stages.
 
 ---
 
@@ -17,7 +17,7 @@ Foundational setup with backend, frontend, and Dockerized infrastructure with ES
 codelab/
 ├── backend/                # Express.js backend
 │   ├── prisma/             # Database schema and migrations
-│   ├── index.js            # Main entry point for the backend
+│   ├── src /               # Main application code
 │   ├── package.json        # Backend dependencies
 │   └── backend.dockerfile  # Dockerfile for backend
 ├── frontend/               # Next.js frontend

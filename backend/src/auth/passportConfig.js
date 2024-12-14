@@ -7,9 +7,9 @@
  * - Uses Prisma to fetch or create users in the database.
  */
 
-const passport = require("passport");
-const { Strategy: GitHubStrategy } = require("passport-github2");
-const prisma = require("../lib/prisma");
+const passport = require('passport');
+const { Strategy: GitHubStrategy } = require('passport-github2');
+const prisma = require('../lib/prisma');
 
 /**
  * Serialize user ID to store in the session.
@@ -51,14 +51,11 @@ passport.use(
 
         // If no email is found, fetch emails explicitly from the GitHub API
         if (!email) {
-          const emailResponse = await fetch(
-            "https://api.github.com/user/emails",
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-              },
+          const emailResponse = await fetch('https://api.github.com/user/emails', {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
             },
-          );
+          });
 
           if (emailResponse.ok) {
             const emails = await emailResponse.json();
@@ -69,7 +66,7 @@ passport.use(
 
         // Throw an error if email is still not found
         if (!email) {
-          return done(new Error("Email not found in GitHub profile or API"));
+          return done(new Error('Email not found in GitHub profile or API'));
         }
 
         // Check if the user already exists in the database
@@ -85,6 +82,7 @@ passport.use(
               email: email,
               githubId: profile.id,
               accessToken,
+              avatarUrl: profile.avatarUrl,
             },
           });
         } else {
@@ -98,7 +96,7 @@ passport.use(
         // Pass the user to the next middleware
         done(null, user);
       } catch (error) {
-        console.error("Error during GitHub OAuth strategy:", error);
+        console.error('Error during GitHub OAuth strategy:', error);
         done(error, false);
       }
     },

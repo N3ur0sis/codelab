@@ -1,6 +1,7 @@
 {
-  "name": "frontend",
-  "version": "0.1.2",
+  "name": "codelab-frontend",
+  "version": "0.3.0",
+  "description": "Frontend service for the CodeLab learning management system.",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,6 +10,15 @@
     "lint": "next lint",
     "format": "prettier --write ."
   },
+  "keywords": [
+    "frontend",
+    "codelab",
+    "lms",
+    "nextjs",
+    "react"
+  ],
+  "author": "Aymeric ROBERT",
+  "license": "MIT",
   "dependencies": {
     "axios": "^1.7.9",
     "next": "15.1.0",
