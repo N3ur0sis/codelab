@@ -34,7 +34,7 @@ services:
       - .env.development
     volumes:
       - ./backend:/usr/src/app
-      - /usr/src/app/node_modules # Avoid syncing node_modules to host
+      #- /usr/src/app/node_modules # Avoid syncing node_modules to host
 
   db:
     container_name: db

@@ -16,6 +16,7 @@ const sessionConfig = require('./middleware/sessionConfig');
 const authRoutes = require('./routes/authRoutes');
 const challengeRoutes = require('./routes/challengeRoutes');
 const ensureAuth = require('./middleware/ensureAuth');
+const webhookRoutes = require('./routes/webhookRoutes');
 
 require('./auth/passportConfig'); // Initialize Passport strategies
 
@@ -67,6 +68,8 @@ app.use('/challenges', challengeRoutes);
 app.get('/auth/session', ensureAuth, (req, res) => {
   res.status(200).json(req.user);
 });
+
+app.use('/webhooks', webhookRoutes);
 
 /**
  * Endpoint: Health Check

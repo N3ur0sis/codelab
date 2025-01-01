@@ -14,6 +14,9 @@ COPY package*.json ./
 # Install the necessary dependencies
 RUN npm install
 
+# Ensure @octokit/rest is installed
+RUN npm install @octokit/rest
+
 #Copy the prisma schema to the container 
 COPY prisma ./prisma
 

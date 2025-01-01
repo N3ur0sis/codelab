@@ -10,6 +10,7 @@
  */
 
 const prisma = require('../lib/prisma');
+const { createRepoForChallenge } = require('../services/githubService');
 
 /**
  * Fetch all challenges available in the system.
@@ -88,40 +89,36 @@ const enrollChallenge = async (req, res) => {
     const { challengeId } = req.body;
     const userId = req.user.id;
 
-    // Check if the user is already enrolled
     const existingEnrollment = await prisma.enrollment.findFirst({
       where: { userId, challengeId },
     });
 
     if (existingEnrollment) {
-      return res.status(400).json({ message: 'You are already enrolled in this challenge.' });
+      return res.status(400).json({ message: 'Already enrolled' });
     }
 
-    // Generate a unique repository URL for the user
-    //TODO: Add the actual logic for creating the repo
-    const repoUrl = `https://github.com/${req.user.githubId}/challenge-${challengeId}`;
+    const repoName = `challenge-${challengeId}-user-${req.user.githubId}`;
+    const repoUrl = await createRepoForChallenge(repoName, req.user.githubId);
 
-    // Create a new enrollment record
     const enrollment = await prisma.enrollment.create({
       data: {
         userId,
         challengeId,
-        currentStage: 0, // Start from the pre-stage
+        currentStage: 0,
         repoUrl,
       },
     });
 
     res.status(201).json({
-      message: 'Enrollment successful.',
       enrollment,
       preStage: {
         title: 'Setup Repository',
-        description: `Clone the repository from ${repoUrl} and make your first commit to start.`,
+        description: `Clone the repository from ${repoUrl} and make your first commit.`,
       },
     });
   } catch (err) {
-    console.error('Error enrolling in challenge:', err);
-    res.status(500).json({ message: 'Failed to enroll in challenge.' });
+    console.error(err);
+    res.status(500).json({ message: 'Error enrolling in challenge' });
   }
 };
 
