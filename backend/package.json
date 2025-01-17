@@ -9,7 +9,8 @@
     "prisma:studio": "npx prisma studio",
     "format": "prettier --write \"**/*.{js,ts,html,css,md,json}\"",
     "lint": "eslint . ",
-    "lint:fix": "eslint . --fix "
+    "lint:fix": "eslint . --fix ",
+    "seed": "node prisma/seed.js"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
