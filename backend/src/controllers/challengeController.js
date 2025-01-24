@@ -10,7 +10,8 @@
  */
 
 const prisma = require('../lib/prisma');
-const { createRepoForChallenge } = require('../services/githubService');
+const { Octokit } = require('@octokit/rest'); 
+const { createRepoForChallenge, getInstallationToken, deleteRepo, checkRepoExists } = require('../services/githubService');
 
 /**
  * Fetch all challenges available in the system.
@@ -86,6 +87,7 @@ const getChallengeById = async (req, res) => {
  */
 const enrollChallenge = async (req, res) => {
   try {
+
     const { challengeId } = req.body;
     const userId = req.user.id;
 
@@ -98,7 +100,23 @@ const enrollChallenge = async (req, res) => {
     }
 
     const repoName = `challenge-${challengeId}-user-${req.user.githubId}`;
-    const repoUrl = await createRepoForChallenge(repoName, req.user.githubId);
+    const owner = 'SoloDesignDev'; // Replace with your correct account or organization name
+    const installationToken = await getInstallationToken(owner);
+
+    const octokit = new Octokit({ auth: installationToken });
+
+    const templateOwner = owner;
+    const templateRepo = 'challenge-template'; // Template repository name
+
+    
+    const repoExists = await checkRepoExists(owner, repoName, octokit);
+
+    if (repoExists) {
+      console.log("Le repo existe déjà");
+      deleteRepo(owner,repoName, octokit);
+    }
+    
+    const repoUrl = await createRepoForChallenge(repoName, req.user.username, templateRepo, templateOwner, octokit, owner);
 
     const enrollment = await prisma.enrollment.create({
       data: {
@@ -128,6 +146,7 @@ const enrollChallenge = async (req, res) => {
  */
 const getCurrentStage = async (req, res) => {
   try {
+
     const { id } = req.params; // Challenge ID
     const userId = req.user.id; // Authenticated user's ID
 

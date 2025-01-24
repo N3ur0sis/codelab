@@ -13,6 +13,7 @@ datasource db {
 model User {
   id            Int           @id @default(autoincrement()) // Primary key, auto-incrementing integer
   name          String // Name of the user
+  username      String // Gihub username
   email         String        @unique // Email address, must be unique
   githubId      String?       @unique // Optional GitHub ID, must be unique if provided
   accessToken   String? // Optional GitHub OAuth access token

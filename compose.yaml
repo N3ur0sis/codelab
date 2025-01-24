@@ -30,12 +30,14 @@ services:
       - "4000:4000"
     depends_on:
       - db
+    environment:
+      - CHOKIDAR_USEPOLLING=true # Enable polling
     env_file:
       - .env.development
     volumes:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules # Avoid syncing node_modules to host
-    command: ["sh", "-c", "npx prisma migrate deploy && npx prisma generate && npm run seed && npm run dev"]
+    command: ["sh", "-c", "npx prisma migrate deploy && npx prisma generate && nodemon --config nodemon.json"]
 
   db:
     container_name: db

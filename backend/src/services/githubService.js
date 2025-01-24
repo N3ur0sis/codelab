@@ -7,9 +7,8 @@
  * - Validate incoming webhooks.
  */
 
-const { Octokit } = require('@octokit/rest');
 const jwt = require('jsonwebtoken');
-
+const { Octokit } = require('@octokit/rest'); 
 const APP_ID = process.env.GITHUB_APP_ID;
 const PRIVATE_KEY = process.env.GITHUB_APP_PRIVATE_KEY.replace(/\\n/g, '\n'); // Fix multiline keys
 const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET;
@@ -29,7 +28,7 @@ const generateGitHubJWT = () => {
 /**
  * Fetch installation token for a specific GitHub account or organization.
  */
-const getInstallationToken = async (owner) => {
+async function getInstallationToken(owner) {
   const jwtToken = generateGitHubJWT();
   const octokit = new Octokit({ auth: jwtToken });
 
@@ -54,16 +53,9 @@ const getInstallationToken = async (owner) => {
 /**
  * Create a repository for a challenge using a template repository.
  */
-async function createRepoForChallenge(username, challengeTitle) {
+async function createRepoForChallenge(repoName, username, templateRepo, templateOwner, octokit, owner) {
   try {
-    const owner = 'N3ur0sis'; // Replace with your correct account or organization name
-    const installationToken = await getInstallationToken(owner);
 
-    const octokit = new Octokit({ auth: installationToken });
-
-    const repoName = `challenge-${challengeTitle.replace(/\s+/g, '-').toLowerCase()}-${username}`;
-    const templateOwner = owner;
-    const templateRepo = 'challenge-template'; // Template repository name
 
     console.log('Using template details:', {
       template_owner: templateOwner,
@@ -71,23 +63,77 @@ async function createRepoForChallenge(username, challengeTitle) {
       repoName,
     });
 
-    // Generate repository from template
+
+    // 1. Créez le dépôt à partir d'un template
     const response = await octokit.repos.createUsingTemplate({
       template_owner: templateOwner, // Owner of the template repo
       template_repo: templateRepo, // Name of the template repo
-      owner, // Target owner (your account or organization)
+      owner: owner, // Target owner (your account or organization)
       name: repoName, // New repo name
       private: true,
-      description: `Repository for challenge: ${challengeTitle}`,
+      description: `Repository for challenge: ${repoName}`,
     });
-
     console.log('Repository created successfully:', response.data.html_url);
+
+    // 2. Ajoutez l'utilisateur comme collaborateur
+    await addUserToRepo(username, repoName, octokit, owner);
+
+
     return response.data.html_url;
   } catch (err) {
     console.error('Error creating repository from template:', err.response?.data || err.message);
     throw err;
   }
 }
+
+async function addUserToRepo(userGithubUsername, repoName, octokit,owner) {
+  try {
+      // Ajoute un collaborateur au dépôt
+      const response = await octokit.repos.addCollaborator({
+          owner: owner, // Le propriétaire du dépôt (votre compte GitHub)
+          repo: repoName,  // Le nom du dépôt créé
+          username: userGithubUsername, // Nom d'utilisateur GitHub de l'étudiant
+          permission: "push", // Permissions: pull, push, ou admin
+      });
+
+      console.log(`Utilisateur ${userGithubUsername} ajouté au dépôt ${repoName}`);
+      return response.data;
+  } catch (error) {
+      console.error("Erreur lors de l'ajout du collaborateur :", error.message);
+      throw error;
+  }
+}
+
+
+
+async function deleteRepo(owner, repoName, octokit) {
+  try {
+      await octokit.repos.delete({
+          owner: owner,
+          repo: repoName,
+      });
+      console.log(`Dépôt ${repoName} supprimé avec succès.`);
+  } catch (error) {
+      console.error("Erreur lors de la suppression du dépôt :", error.message);
+      throw error;
+  }
+}
+
+async function checkRepoExists(owner, repoName, octokit) {
+  try {
+      await octokit.repos.get({
+          owner: owner,
+          repo: repoName,
+      });
+      return true; // Le dépôt existe
+  } catch (error) {
+      if (error.status === 404) {
+          return false; // Le dépôt n'existe pas
+      }
+      throw error; // Autres erreurs
+  }
+}
+
 
 /**
  * Verify webhook signature.
@@ -99,4 +145,4 @@ const verifyWebhookSignature = (payload, signature) => {
   return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
 };
 
-module.exports = { createRepoForChallenge, verifyWebhookSignature };
+module.exports = { createRepoForChallenge, verifyWebhookSignature, deleteRepo, checkRepoExists, getInstallationToken };
