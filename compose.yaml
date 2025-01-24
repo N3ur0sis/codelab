@@ -34,7 +34,8 @@ services:
       - .env.development
     volumes:
       - ./backend:/usr/src/app
-      #- /usr/src/app/node_modules # Avoid syncing node_modules to host
+      - /usr/src/app/node_modules # Avoid syncing node_modules to host
+    command: ["sh", "-c", "npx prisma migrate deploy && npx prisma generate && npm run seed && npm run dev"]
 
   db:
     container_name: db
