@@ -20,7 +20,6 @@ model User {
   avatarUrl     String? // Optional URL to the user's avatar
   createdAt     DateTime      @default(now()) // Timestamp of when the user was created
   enrollments   Enrollment[] // Relationship to the Enrollment model, tracks user challenge enrollments
-  stageStatuses StageStatus[] // Relationship to the StageStatus model, tracks stage-level progress
 }
 
 // Session model respresents the user's session.
@@ -57,35 +56,23 @@ model Stage {
   order       Int // Order of the stage within the challenge
   challengeId Int // Foreign key referencing the Challenge model
   challenge   Challenge     @relation(fields: [challengeId], references: [id]) // Relationship to the Challenge model
-  StageStatus StageStatus[] // Relationship to the StageStatus model, tracks user progress for this stage
 
   @@unique([challengeId, order]) // Ensures that each stage order is unique within a challenge
 }
 
 // The Enrollment model tracks user enrollments in challenges and their progress.
 model Enrollment {
-  id           Int       @id @default(autoincrement()) // Primary key, auto-incrementing integer
-  userId       Int // Foreign key referencing the User model
-  challengeId  Int // Foreign key referencing the Challenge model
-  currentStage Int       @default(0) // Tracks the user's current stage in the challenge
-  repoUrl      String? // Optional URL to the user's repository for the challenge
-  enrolledAt   DateTime  @default(now()) // Timestamp of when the user enrolled in the challenge
-  finishedAt   DateTime? // Optional timestamp of when the challenge was completed
-  status       String    @default("in_progress") // Challenge status (e.g., in_progress, completed, failed)
-  user         User      @relation(fields: [userId], references: [id]) // Relationship to the User model
-  challenge    Challenge @relation(fields: [challengeId], references: [id]) // Relationship to the Challenge model
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  challengeId   Int
+  currentStage  Int       @default(0) // Tracks the user's current stage in the challenge
+  repoUrl       String?   // URL to the user's repository for the challenge
+  enrolledAt    DateTime  @default(now())
+  finishedAt    DateTime?
+  status        String    @default("in_progress") // Challenge status (e.g., in_progress, completed, failed)
+  pushValidated Boolean   @default(false) // Indicates if the Git push is validated for the current stage
+  testValidated Boolean   @default(false) // Indicates if the stage test is validated
+  user          User      @relation(fields: [userId], references: [id])
+  challenge     Challenge @relation(fields: [challengeId], references: [id])
 }
 
-// The StageStatus model tracks a user's progress for each stage within a challenge.
-model StageStatus {
-  id          Int       @id @default(autoincrement()) // Primary key, auto-incrementing integer
-  userId      Int // Foreign key referencing the User model
-  stageId     Int // Foreign key referencing the Stage model
-  completed   Boolean   @default(false) // Indicates whether the user has completed the stage
-  startedAt   DateTime? // Optional timestamp of when the stage was started
-  completedAt DateTime? // Optional timestamp of when the stage was completed
-  user        User      @relation(fields: [userId], references: [id]) // Relationship to the User model
-  stage       Stage     @relation(fields: [stageId], references: [id]) // Relationship to the Stage model
-
-  @@unique([userId, stageId]) // Ensures a user has a unique status for each stage
-}

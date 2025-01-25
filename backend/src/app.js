@@ -34,10 +34,15 @@ app.use(
   }),
 );
 
-/**
- * Middleware: Parses incoming JSON requests.
- */
-app.use(express.json());
+const bodyParser = require('body-parser');
+app.use(
+  bodyParser.json({
+    verify: (req, res, buf) => {
+      req.rawBody = buf; // Ensure raw body is captured globally
+    },
+  })
+);
+
 
 /**
  * Middleware: Session management.
@@ -49,6 +54,12 @@ app.use(sessionConfig);
  */
 app.use(passport.initialize());
 app.use(passport.session());
+
+/**
+ * Middleware: Parses incoming JSON requests.
+ */
+app.use(express.json());
+
 
 /**
  * Routes: Authentication-related endpoints.

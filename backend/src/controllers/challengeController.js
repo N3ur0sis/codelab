@@ -164,6 +164,7 @@ const getCurrentStage = async (req, res) => {
     if (enrollment.currentStage === 0) {
       return res.status(200).json({
         stage: {
+          id: 0,
           title: 'Setup Repository',
           description: `Clone the repository from ${enrollment.repoUrl} and make your first commit to start.`,
         },
@@ -183,6 +184,35 @@ const getCurrentStage = async (req, res) => {
   } catch (err) {
     console.error('Error fetching current stage:', err);
     res.status(500).json({ message: 'Failed to fetch current stage.' });
+  }
+};
+
+/**
+ * Validate if the pre-stage push is completed.
+ * This is called by the frontend to check if the user has pushed to their repo.
+ */
+const checkPushStatus = async (req, res) => {
+  try {
+    const { id } = req.params; // Challenge ID
+    const userId = req.user.id; // Authenticated user's ID
+
+    // Fetch the user's enrollment
+    const enrollment = await prisma.enrollment.findFirst({
+      where: { userId, challengeId: Number(id) },
+    });
+
+    if (!enrollment) {
+      return res.status(404).json({ message: 'Enrollment not found.' });
+    }
+
+    // Check if the user's push is validated
+    const pushValidated = enrollment.pushValidated || false;
+    const testValidated = enrollment.testValidated || false;
+
+    res.status(200).json({ pushValidated, testValidated });
+  } catch (err) {
+    console.error('Error checking push status:', err);
+    res.status(500).json({ message: 'Failed to check push status.' });
   }
 };
 
@@ -216,7 +246,7 @@ const moveToNextStage = async (req, res) => {
     // Update the enrollment with the next stage
     await prisma.enrollment.update({
       where: { id: enrollment.id },
-      data: { currentStage: nextStageOrder },
+      data: { currentStage: nextStageOrder, pushValidated: false, testValidated: false },
     });
 
     res.status(200).json({ stage: nextStage });
@@ -226,10 +256,55 @@ const moveToNextStage = async (req, res) => {
   }
 };
 
+const testSubmission = async (req, res) => {
+  try {
+    const { id, stageId } = req.params;
+    const userId = req.user.id;
+
+    // Validate the user's current stage
+    const enrollment = await prisma.enrollment.findFirst({
+      where: {
+        userId,
+        challengeId: Number(id),
+        currentStage: Number(stageId),
+      },
+    });
+
+    if (!enrollment) {
+      return res.status(404).json({ message: 'Enrollment not found or invalid stage.' });
+    }
+
+    if (!enrollment.pushValidated) {
+      return res.status(400).json({ message: 'Git push not validated yet.' });
+    }
+
+    // Simulate test validation (replace with actual logic)
+    const testPassed = true; // Replace with actual test result
+
+    await prisma.enrollment.update({
+      where: { id: enrollment.id },
+      data: { testValidated: testPassed },
+    });
+
+    if (testPassed) {
+      console.log(`Stage test validated for user ${userId} in challenge ${id}, stage ${stageId}.`);
+      return res.status(200).json({ message: 'Test passed.' });
+    } else {
+      console.log(`Stage test failed for user ${userId} in challenge ${id}, stage ${stageId}.`);
+      return res.status(400).json({ message: 'Test failed.' });
+    }
+  } catch (err) {
+    console.error('Error validating stage test:', err);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+};
+
 module.exports = {
   getChallenges,
   getChallengeById,
   enrollChallenge,
   getCurrentStage,
   moveToNextStage,
+  checkPushStatus,
+  testSubmission,
 };

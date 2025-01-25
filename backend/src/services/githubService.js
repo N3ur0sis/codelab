@@ -9,6 +9,8 @@
 
 const jwt = require('jsonwebtoken');
 const { Octokit } = require('@octokit/rest'); 
+const crypto = require('crypto');
+
 const APP_ID = process.env.GITHUB_APP_ID;
 const PRIVATE_KEY = process.env.GITHUB_APP_PRIVATE_KEY.replace(/\\n/g, '\n'); // Fix multiline keys
 const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET;
@@ -139,10 +141,24 @@ async function checkRepoExists(owner, repoName, octokit) {
  * Verify webhook signature.
  */
 const verifyWebhookSignature = (payload, signature) => {
-  const hmac = crypto.createHmac('sha256', WEBHOOK_SECRET);
-  hmac.update(payload);
-  const expected = `sha256=${hmac.digest('hex')}`;
-  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+  try {
+    const normalizedPayload = payload.toString('utf-8').replace(/\r\n/g, '\n'); // Normalize line endings
+    const hmac = crypto.createHmac('sha256', process.env.GITHUB_WEBHOOK_SECRET);
+    hmac.update(normalizedPayload, 'utf-8'); // Use normalized payload
+    const expectedSignature = `sha256=${hmac.digest('hex')}`;
+
+    // Use timingSafeEqual to prevent timing attacks
+    return crypto.timingSafeEqual(
+      Buffer.from(signature, 'utf-8'),
+      Buffer.from(expectedSignature, 'utf-8')
+    );
+  } catch (error) {
+    console.error('Error verifying webhook signature:', error);
+    return false;
+  }
 };
+
+
+
 
 module.exports = { createRepoForChallenge, verifyWebhookSignature, deleteRepo, checkRepoExists, getInstallationToken };

@@ -17,6 +17,8 @@ const {
   enrollChallenge,
   getCurrentStage,
   moveToNextStage,
+  checkPushStatus,
+  testSubmission,
 } = require('../controllers/challengeController');
 
 const router = express.Router();
@@ -50,5 +52,17 @@ router.get('/:id/current-stage', ensureAuth, getCurrentStage);
  * Move the user to the next stage in the challenge.
  */
 router.post('/:id/next-stage', ensureAuth, moveToNextStage);
+
+/**
+ * GET /challenges/:id/push-status
+ * Check if the user's pre-stage Git push is validated.
+ */
+router.get('/:id/push-status', ensureAuth, checkPushStatus);
+
+/**
+ * GET /challenges/:id/stages/:stageId/test
+ * Check if the user's pre-stage Git push is validated.
+ */
+router.post('/:id/stages/:stageId/test', ensureAuth, testSubmission);
 
 module.exports = router;
