@@ -2,11 +2,12 @@ const express = require('express');
 const bodyParser = require('body-parser'); // Use body-parser for raw body handling
 const { verifyWebhookSignature } = require('../services/githubService'); // Import the signature verification function
 const prisma = require('../lib/prisma'); // Import Prisma for database operations
+const testQueue = require('../services/testQueue');
 
 const router = express.Router();
 
 /**
- * POST /webhook/github
+ * POST /webhooks/github
  * Handles incoming GitHub webhook events and processes push events.
  */
 router.post(
@@ -14,7 +15,6 @@ router.post(
   bodyParser.json({
     verify: (req, res, buf) => {
       req.rawBody = buf; // Capture the raw body as a buffer
-      console.log('Raw Buffer Captured:', buf.toString('utf-8')); // Debugging: log the raw buffer
     },
   }),
   async (req, res) => {
@@ -77,9 +77,18 @@ router.post(
       },
     });
   }
+        // Add a test job to the queue
+        const commitHash = commits[0]?.id; // Use the latest commit hash
+        await testQueue.add('runTest', {
+          repoUrl: repository.html_url,
+          commitHash,
+          stageId: enrollment.currentStage,
+          userId: enrollment.user.id,
+          enrollment: enrollment,
+        });
 
-      console.log(`Push validated for repo: ${repository.full_name}`);
-      return res.status(200).send('Push validated and pre-stage completed.');
+        console.log('Job added to queue for testing:', repository.full_name);
+        return res.status(200).send('Push validated and test job added.');
     } catch (err) {
       console.error('Error processing webhook:', err);
       return res.status(500).send('Internal server error.');
