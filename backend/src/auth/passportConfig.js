@@ -85,7 +85,7 @@ passport.use(
               githubId: profile.id,
               accessToken,
               avatarUrl: profile.avatarUrl,
-              userRole: UserRole.STUDENT,
+              user_role: UserRole.STUDENT,
             },
           });
         } else {

@@ -40,7 +40,6 @@ router.get('/:id', ensureAuth, getChallengeById);
  * Enroll the authenticated user in a challenge.
  */
 router.post('/enroll', ensureAuth, enrollChallenge);
-
 /**
  * GET /challenges/:id/current-stage
  * Fetch the current stage of a user's enrollment in the challenge.

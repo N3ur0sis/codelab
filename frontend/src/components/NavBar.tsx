@@ -47,6 +47,11 @@ const Navbar: React.FC = () => {
     window.location.href = `${BACKEND_URL}/auth/logout`; // Redirect to backend logout route
   };
 
+  //Temp for dev
+  const handleRoleSwitch = () => {
+    window.location.href = `${BACKEND_URL}/auth/switchRole`; // Redirect to backend GitHub login route
+  };
+
   if (loading) {
     return null; // Avoid rendering anything while loading
   }
