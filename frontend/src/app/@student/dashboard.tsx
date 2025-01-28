@@ -59,7 +59,7 @@ const StudentDashboard: React.FC = () => {
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <h1 className="text-2xl font-bold">Welcome to your Dashboard, {user.name}!</h1>
+      <h1 className="text-2xl font-bold">Welcome to your Student Dashboard, {user.name}!</h1>
       <div className="mt-6 w-full max-w-4xl">
         {challenges.length > 0 ? (
           <ul className="space-y-4">

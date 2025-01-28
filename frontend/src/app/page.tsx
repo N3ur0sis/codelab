@@ -16,7 +16,7 @@ import TeacherDashboard from './@teacher/dashboard';
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const Homepage: React.FC = () => {
-  const [user, setUser] = useState<{ name: string; role: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; user_role: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

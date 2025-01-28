@@ -40,14 +40,11 @@ export const metadata: Metadata = {
  */
 export default function RootLayout({
   children,
-  student,
-  teacher,
 }: {
   children: React.ReactNode;
   student: React.ReactNode;
   teacher: React.ReactNode;
 }) {
-  const role = "STUDENT";
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>

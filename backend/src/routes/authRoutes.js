@@ -29,6 +29,31 @@ router.get(
 );
 
 /**
+ * Route: /auth/switchRole
+ * Purpose: Switches the user's role between Student and Teacher.
+ * - Assumes the backend will toggle roles based on current role.
+ */
+router.get('/switchRole', async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        user_role: req.user.user_role === 'STUDENT' ? 'TEACHER' : 'STUDENT', // Toggle role
+      },
+    });
+
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/`);
+  } catch (error) {
+    console.error('Error switching role:', error);
+    res.status(500).json({ message: 'Failed to switch role' });
+  }
+});
+
+/**
  * Route: /auth/logout
  * Purpose: Logs out the user by destroying their session.
  */
