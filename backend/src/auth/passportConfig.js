@@ -10,6 +10,7 @@
 const passport = require('passport');
 const { Strategy: GitHubStrategy } = require('passport-github2');
 const prisma = require('../lib/prisma');
+const { UserRole } = require('@prisma/client');
 
 /**
  * Serialize user ID to store in the session.
@@ -84,6 +85,7 @@ passport.use(
               githubId: profile.id,
               accessToken,
               avatarUrl: profile.avatarUrl,
+              userRole: UserRole.STUDENT,
             },
           });
         } else {

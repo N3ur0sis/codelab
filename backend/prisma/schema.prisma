@@ -9,6 +9,13 @@ datasource db {
   url      = env("DATABASE_URL") // Fetches the connection string from an environment variable
 }
 
+// Define all different role for users
+enum UserRole {
+  TEACHER
+  ADMIN
+  STUDENT
+}
+
 // The User model represents application users.
 model User {
   id            Int           @id @default(autoincrement()) // Primary key, auto-incrementing integer
@@ -20,6 +27,7 @@ model User {
   avatarUrl     String? // Optional URL to the user's avatar
   createdAt     DateTime      @default(now()) // Timestamp of when the user was created
   enrollments   Enrollment[] // Relationship to the Enrollment model, tracks user challenge enrollments
+  user_role     UserRole // Role of the user : Teacher, Admin, Student
 }
 
 // Session model respresents the user's session.
