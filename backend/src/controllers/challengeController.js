@@ -299,6 +299,9 @@ const testSubmission = async (req, res) => {
   }
 };
 
+const createChallenge = async (req, res) => {
+};
+
 module.exports = {
   getChallenges,
   getChallengeById,
@@ -307,4 +310,5 @@ module.exports = {
   moveToNextStage,
   checkPushStatus,
   testSubmission,
+  createChallenge,
 };

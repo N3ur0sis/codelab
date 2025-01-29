@@ -10,8 +10,7 @@
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import StudentDashboard from './@student/dashboard';
-import TeacherDashboard from './@teacher/dashboard';
+
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -53,9 +52,6 @@ const Homepage: React.FC = () => {
   }
 
   // Redirect to the appropriate dashboard based on the user's role
-  if (user.user_role === 'STUDENT') {return <StudentDashboard />;}
-  if (user.user_role === 'TEACHER') {return <TeacherDashboard />;}
-
   return <p>Unauthorized</p>;
 };
 

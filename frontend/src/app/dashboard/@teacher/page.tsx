@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -60,6 +61,11 @@ const TeacherDashboard: React.FC = () => {
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <h1 className="text-2xl font-bold">Welcome to your Teacher Dashboard, {user.name}!</h1>
+      <Link href="/dashboard/create">
+        <button className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-600">
+          Create a Challenge
+        </button>
+      </Link>
       <div className="mt-6 w-full max-w-4xl">
         {challenges.length > 0 ? (
           <ul className="space-y-4">

@@ -24,7 +24,7 @@ router.get(
   '/github/callback',
   passport.authenticate('github', {
     failureRedirect: '/auth/failure',
-    successRedirect: `${FRONTEND_URL}/`,
+    successRedirect: `${FRONTEND_URL}/dashboard`,
   }),
 );
 
@@ -46,7 +46,7 @@ router.get('/switchRole', async (req, res) => {
       },
     });
 
-    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/`);
+    res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
   } catch (error) {
     console.error('Error switching role:', error);
     res.status(500).json({ message: 'Failed to switch role' });

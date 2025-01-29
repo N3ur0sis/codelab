@@ -19,6 +19,7 @@ const {
   moveToNextStage,
   checkPushStatus,
   testSubmission,
+  createChallenge,
 } = require('../controllers/challengeController');
 
 const router = express.Router();
@@ -63,5 +64,11 @@ router.get('/:id/push-status', ensureAuth, checkPushStatus);
  * Check if the user's pre-stage Git push is validated.
  */
 router.post('/:id/stages/:stageId/test', ensureAuth, testSubmission);
+
+/**
+ * POST /challenges/create
+ * Create Challenge the authenticated user in a challenge.
+ */
+router.post('/create', ensureAuth, createChallenge);
 
 module.exports = router;
