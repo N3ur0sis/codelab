@@ -61,7 +61,7 @@ const TeacherDashboard: React.FC = () => {
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <h1 className="text-2xl font-bold">Welcome to your Teacher Dashboard, {user.name}!</h1>
-      <Link href="/dashboard/create">
+      <Link href="/create">
         <button className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-600">
           Create a Challenge
         </button>
