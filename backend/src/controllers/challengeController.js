@@ -330,6 +330,34 @@ const createChallenge = async (req, res) => {
     res.status(500).json({ message: 'Failed to create challenge.' });
   }
 };
+const deleteChallenge = async (req, res) => {
+  let { id } = req.params;
+  const userId = req.user.id;
+  id = parseInt(id, 10);
+
+  if (isNaN(id)) {return res.status(400).json({ message: 'Invalid challenge ID' });}
+
+  try {
+    //Find the challenge
+    const challenge = await prisma.challenge.findUnique({where: { id },});
+
+    if (!challenge) {return res.status(404).json({ message: 'Challenge not found' }); }
+    if (challenge.authorId !== userId) {return res.status(403).json({ message: 'You do not have permission to delete this challenge.' });}
+
+    // Delete Stage
+    await prisma.stage.deleteMany({where: {challengeId: id,},});
+    // Delete Enrollment
+    await prisma.enrollment.deleteMany({where: {challengeId: id,},});
+    // Delete Challenge
+    await prisma.challenge.delete({where: { id },});
+
+    res.status(200).json({ message: 'Challenge deleted successfully.' });
+  } catch (error) {
+    console.error('Error deleting challenge:', error);
+    res.status(500).json({ message: 'An error occurred while deleting the challenge.' });
+  }
+};
+
 module.exports = {
   getChallenges,
   getChallengeById,
@@ -339,4 +367,5 @@ module.exports = {
   checkPushStatus,
   testSubmission,
   createChallenge,
+  deleteChallenge
 };

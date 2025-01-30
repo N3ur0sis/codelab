@@ -56,6 +56,27 @@ const TeacherDashboard: React.FC = () => {
     fetchChallenges();
   }, [user]);
 
+  const handleDeleteChallenge = async (id: number) => {
+    try {
+      //Check if the user is a teacher
+      const responseAuth = await axios.get(`${BACKEND_URL}/auth/session`, { withCredentials: true });
+      const userRole = responseAuth.data.user_role;  
+      if (userRole !== 'TEACHER') {return; }
+
+      await axios.delete(`${BACKEND_URL}/challenges/${id}/delete`, {
+        withCredentials: true,
+      });
+      setChallenges(challenges.filter((challenge) => challenge.id !== id));
+    } catch (error) {
+      console.error('Error deleting challenge:', error);
+      alert('Failed to delete challenge');
+    }
+  };
+
+  const handleEditChallenge = (id: number) => {
+    router.push(`/modify/${id}`);
+  };
+
   if (loading) {
     return <p>Loading...</p>;
   }
@@ -74,10 +95,27 @@ const TeacherDashboard: React.FC = () => {
               <li
                 key={challenge.id}
                 className="p-4 bg-white shadow-md rounded-md cursor-pointer hover:bg-gray-50"
-                onClick={() => router.push(`/challenges/${challenge.id}`)}
               >
-                <h2 className="text-lg font-bold">{challenge.title}</h2>
-                <p>{challenge.description}</p>
+                <div className="flex justify-between">
+                  <div>
+                    <h2 className="text-lg font-bold">{challenge.title}</h2>
+                    <p>{challenge.description}</p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleEditChallenge(challenge.id)}
+                      className="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleDeleteChallenge(challenge.id)}
+                      className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                    >
+                      ❌
+                    </button>
+                  </div>
+                </div>
               </li>
             ))}
           </ul>
