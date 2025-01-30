@@ -1,6 +1,10 @@
 'use client';
 
+import axios from 'axios';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface Stage {
   id: number;
@@ -14,6 +18,9 @@ const CreateChallengePage = () => {
   const [stages, setStages] = useState<Stage[]>([]);
   const [stageTitle, setStageTitle] = useState('');
   const [stageDescription, setStageDescription] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const router = useRouter();
 
   const resetForm = () => {
     setTitle('');
@@ -45,14 +52,54 @@ const CreateChallengePage = () => {
     }
   };
 
-  const handleCreateChallenge = () => {
-    console.log("Challenge ajouté !", { title, description, stages });
-    // Tu pourras gérer l'ajout avec ton backend ici.
+  const handleCreateChallenge = async () => {
+    if (!title.trim() || !description.trim() || stages.length === 0) {
+      setError("Veuillez remplir tous les champs et ajouter au moins une étape.");
+      return;
+    }
+    setError('');
+    setLoading(true);
+  
+    try {
+      const responseAuth = await axios.get(`${BACKEND_URL}/auth/session`, { withCredentials: true });
+      const userId = responseAuth.data.id;
+      const userRole = responseAuth.data.user_role;  
+
+      if (userRole !== 'TEACHER') {
+        setError("Seul un enseignant peut ajouter un challenge.");
+        return;
+      }
+
+      const response = await axios.post(`${BACKEND_URL}/challenges/create`, {
+        title,
+        description,
+        authorID: userId, 
+        difficulty: null,
+        estimatedTime: null, 
+        prerequisites: [],
+        stages: stages.map((stage, index) => ({
+          title: stage.title,
+          description: stage.description,
+          order: index + 1,
+        })),
+      }, { withCredentials: true });
+
+      console.log("Challenge ajouté avec succès :", response.data);
+      resetForm();
+      router.push('/');
+    } catch (error) {
+      console.error("Erreur lors de la création :", error);
+      setError("Une erreur est survenue, veuillez réessayer.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow">
       <h1 className="text-2xl font-bold mb-4">Créer un Challenge</h1>
+
+      {error && <p className="text-red-500 mb-4">{error}</p>}
 
       {/* CHALLENGE FORM */}
       <div className="mb-4">
@@ -143,14 +190,16 @@ const CreateChallengePage = () => {
         <button
           onClick={resetForm}
           className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          disabled={loading}
         >
           Supprimer le challenge
         </button>
         <button
           onClick={handleCreateChallenge}
           className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+          disabled={loading}
         >
-          Ajouter le challenge
+          {loading ? "Création..." : "Ajouter le challenge"}
         </button>
       </div>
     </div>

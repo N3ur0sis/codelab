@@ -11,10 +11,11 @@ interface Challenge {
   id: number;
   title: string;
   description: string;
+  authorId: string;
 }
 
 const TeacherDashboard: React.FC = () => {
-  const [user, setUser] = useState<{ name: string; role: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; role: string; id: string } | null>(null);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -42,7 +43,12 @@ const TeacherDashboard: React.FC = () => {
         const response = await axios.get(`${BACKEND_URL}/challenges`, {
           withCredentials: true,
         });
-        setChallenges(response.data);
+
+        // Filter challenges to only show those created by the current user
+        const filteredChallenges = response.data.filter(
+          (challenge: Challenge) => challenge.authorId === user.id
+        );
+        setChallenges(filteredChallenges);
       } catch (err) {
         console.error('Error fetching challenges:', err);
       }
@@ -61,11 +67,6 @@ const TeacherDashboard: React.FC = () => {
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <h1 className="text-2xl font-bold">Welcome to your Teacher Dashboard, {user.name}!</h1>
-      <Link href="/create">
-        <button className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-600">
-          Create a Challenge
-        </button>
-      </Link>
       <div className="mt-6 w-full max-w-4xl">
         {challenges.length > 0 ? (
           <ul className="space-y-4">
@@ -84,6 +85,11 @@ const TeacherDashboard: React.FC = () => {
           <p>No challenges available at the moment.</p>
         )}
       </div>
+      <Link href="/create">
+        <button className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-600">
+          Create a Challenge
+        </button>
+      </Link>
     </main>
   );
 };
