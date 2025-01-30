@@ -21,6 +21,7 @@ const {
   testSubmission,
   createChallenge,
   deleteChallenge,
+  modifyChallenge
 } = require('../controllers/challengeController');
 
 const router = express.Router();
@@ -73,7 +74,13 @@ router.post('/:id/stages/:stageId/test', ensureAuth, testSubmission);
 router.post('/create', ensureAuth, createChallenge);
 
 /**
- * DELETE /challenges/create
+ * PUT /challenges/:id/modify
+ * Modify a Challenge if the authenticated user is a TEACHER.
+ */
+router.put('/:id/modify', ensureAuth, modifyChallenge);
+
+/**
+ * DELETE /challenges/:id/delete
  * Delete a Challenge if the authenticated user is a TEACHER.
  */
 router.delete('/:id/delete', ensureAuth, deleteChallenge);

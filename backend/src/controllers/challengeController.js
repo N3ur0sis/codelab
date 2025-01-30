@@ -298,6 +298,12 @@ const testSubmission = async (req, res) => {
     res.status(500).json({ message: 'Internal server error.' });
   }
 };
+
+/**
+ * Create a new challenge.
+ * Allows an authenticated user to create a challenge with a title, description, difficulty, estimated time,
+ * prerequisites, and stages. The challenge is associated with the user as the author.
+ */
 const createChallenge = async (req, res) => {
   try {
     const { title, description, difficulty, estimatedTime, prerequisites, stages } = req.body;
@@ -330,6 +336,12 @@ const createChallenge = async (req, res) => {
     res.status(500).json({ message: 'Failed to create challenge.' });
   }
 };
+
+/**
+ * Delete a challenge.
+ * Allows an authenticated user (challenge author) to delete a challenge. The challenge, along with its stages 
+ * and enrollments, will be deleted from the database.
+ */
 const deleteChallenge = async (req, res) => {
   let { id } = req.params;
   const userId = req.user.id;
@@ -358,6 +370,53 @@ const deleteChallenge = async (req, res) => {
   }
 };
 
+/**
+ * Modify an existing challenge.
+ * Allows an authenticated user (challenge author) to update the challenge's title, description, difficulty,
+ * estimated time, prerequisites, and stages. Only the challenge author can modify it.
+ */
+const modifyChallenge = async (req, res) => {
+  try {
+    const { id } = req.params; 
+    const { title, description, difficulty, estimatedTime, prerequisites, stages } = req.body;
+    const userId = req.user.id;
+
+    // Find the challenge
+    const challenge = await prisma.challenge.findUnique({
+      where: { id: Number(id) },
+    });
+
+    // Some Verifications
+    if (!challenge) {return res.status(404).json({ message: 'Challenge not found.' });}
+    if (challenge.authorId !== userId) {return res.status(403).json({ message: 'You do not have permission to modify this challenge.' }); }
+
+    // Update the challenge with new data
+    const updatedChallenge = await prisma.challenge.update({
+      where: { id: Number(id) },
+      data: {
+        title,
+        description,
+        difficulty,
+        estimatedTime,
+        prerequisites,
+        stages: {
+          deleteMany: {},
+          create: stages.map((stage) => ({
+            title: stage.title,
+            description: stage.description,
+            order: stage.order,
+          })),
+        },
+      },
+    });
+
+    res.status(200).json(updatedChallenge);
+  } catch (err) {
+    console.error('Error modifying challenge:', err);
+    res.status(500).json({ message: 'Failed to modify challenge.' });
+  }
+};
+
 module.exports = {
   getChallenges,
   getChallengeById,
@@ -367,5 +426,6 @@ module.exports = {
   checkPushStatus,
   testSubmission,
   createChallenge,
-  deleteChallenge
+  deleteChallenge,
+  modifyChallenge,
 };

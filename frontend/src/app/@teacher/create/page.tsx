@@ -123,7 +123,7 @@ const CreateChallengePage = () => {
       {/* ADD STAGE FORM */}
       <h2 className="text-lg font-bold mt-4">Ajouter une Étape</h2>
       <div className="mb-4">
-        <label className="block text-sm font-medium">Titre de l'étape</label>
+        <label className="block text-sm font-medium">Titre de l etape</label>
         <input
           type="text"
           value={stageTitle}
@@ -132,7 +132,7 @@ const CreateChallengePage = () => {
         />
       </div>
       <div className="mb-4">
-        <label className="block text-sm font-medium">Description de l'étape</label>
+        <label className="block text-sm font-medium">Description de l etape</label>
         <textarea
           value={stageDescription}
           onChange={(e) => setStageDescription(e.target.value)}
@@ -143,7 +143,7 @@ const CreateChallengePage = () => {
         onClick={addStage}
         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
       >
-        Ajouter l'étape
+        Ajouter l étape
       </button>
 
       {/* STAGE LIST */}
