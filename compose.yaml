@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   frontend:
     container_name: frontend
@@ -69,9 +71,12 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - POSTGRES_URL=postgresql://postgres:postgres@db:5432/postgres?schema=public
+      - KUBECONFIG=/root/.kube/config # ✅ Set Kubeconfig Path
     env_file:
       - .env.development
-    command: ["node", "src/workers/testWorker.js"] # Run the worker script
+    volumes:
+      - ~/.kube:/root/.kube # ✅ Mount Kubernetes config inside worker
+    command: ["node", "src/workers/testWorker.js"]
 
 volumes:
   pgdata: {}

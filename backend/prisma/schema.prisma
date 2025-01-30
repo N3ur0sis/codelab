@@ -1,6 +1,7 @@
 // Define the Prisma client generator, specifying the JavaScript client for database access.
 generator client {
   provider = "prisma-client-js" // Generates the Prisma client for Node.js
+  binaryTargets = ["native", "darwin-arm64"]
 }
 
 // Define the database connection with PostgreSQL as the provider.
