@@ -67,7 +67,7 @@ router.post('/:id/stages/:stageId/test', ensureAuth, testSubmission);
 
 /**
  * POST /challenges/create
- * Create Challenge the authenticated user in a challenge.
+ * Create Challenge if the authenticated user is a TEACHER.
  */
 router.post('/create', ensureAuth, createChallenge);
 

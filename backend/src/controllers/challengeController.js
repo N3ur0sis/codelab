@@ -301,13 +301,13 @@ const testSubmission = async (req, res) => {
 const createChallenge = async (req, res) => {
   try {
     const { title, description, difficulty, estimatedTime, prerequisites, stages } = req.body;
-    const userId = req.user.id; // Récupérer l'ID de l'utilisateur connecté
+    const userId = req.user.id; 
 
     const newChallenge = await prisma.challenge.create({
       data: {
         title,
         description,
-        author: userId,  // Associer l'auteur ici
+        author: userId,  
         difficulty,
         estimatedTime,
         prerequisites,
