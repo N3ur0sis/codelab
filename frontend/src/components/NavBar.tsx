@@ -47,6 +47,11 @@ const Navbar: React.FC = () => {
     window.location.href = `${BACKEND_URL}/auth/logout`; // Redirect to backend logout route
   };
 
+  //Temp for dev
+  const handleRoleSwitch = () => {
+    window.location.href = `${BACKEND_URL}/auth/switchRole`; // Redirect to backend GitHub login route
+  };
+
   if (loading) {
     return null; // Avoid rendering anything while loading
   }
@@ -66,6 +71,13 @@ const Navbar: React.FC = () => {
           ) : (
             <div className="flex items-center space-x-4">
               <span>Welcome, {user.name}!</span>
+              {/* Button to switch user role between Student and Teacher, Temp for Dev */}
+              <button
+                onClick={handleRoleSwitch}
+                className="bg-yellow-500 px-4 py-2 rounded hover:bg-yellow-600"
+              >
+                Switch Role
+              </button>
               <button
                 onClick={handleLogout}
                 className="bg-red-500 px-4 py-2 rounded hover:bg-red-600"

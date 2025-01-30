@@ -19,6 +19,9 @@ const {
   moveToNextStage,
   checkPushStatus,
   testSubmission,
+  createChallenge,
+  deleteChallenge,
+  modifyChallenge
 } = require('../controllers/challengeController');
 
 const router = express.Router();
@@ -40,7 +43,6 @@ router.get('/:id', ensureAuth, getChallengeById);
  * Enroll the authenticated user in a challenge.
  */
 router.post('/enroll', ensureAuth, enrollChallenge);
-
 /**
  * GET /challenges/:id/current-stage
  * Fetch the current stage of a user's enrollment in the challenge.
@@ -64,5 +66,23 @@ router.get('/:id/push-status', ensureAuth, checkPushStatus);
  * Check if the user's pre-stage Git push is validated.
  */
 router.post('/:id/stages/:stageId/test', ensureAuth, testSubmission);
+
+/**
+ * POST /challenges/create
+ * Create a Challenge if the authenticated user is a TEACHER.
+ */
+router.post('/create', ensureAuth, createChallenge);
+
+/**
+ * PUT /challenges/:id/modify
+ * Modify a Challenge if the authenticated user is a TEACHER.
+ */
+router.put('/:id/modify', ensureAuth, modifyChallenge);
+
+/**
+ * DELETE /challenges/:id/delete
+ * Delete a Challenge if the authenticated user is a TEACHER.
+ */
+router.delete('/:id/delete', ensureAuth, deleteChallenge);
 
 module.exports = router;

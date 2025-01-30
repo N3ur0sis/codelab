@@ -9,6 +9,13 @@ datasource db {
   url      = env("DATABASE_URL") // Fetches the connection string from an environment variable
 }
 
+// Define all different role for users
+enum UserRole {
+  TEACHER
+  ADMIN
+  STUDENT
+}
+
 // The User model represents application users.
 model User {
   id            Int           @id @default(autoincrement()) // Primary key, auto-incrementing integer
@@ -19,7 +26,9 @@ model User {
   accessToken   String? // Optional GitHub OAuth access token
   avatarUrl     String? // Optional URL to the user's avatar
   createdAt     DateTime      @default(now()) // Timestamp of when the user was created
-  enrollments   Enrollment[] // Relationship to the Enrollment model, tracks user challenge enrollments
+  enrollments   Enrollment[] // Relationship to the Enrollment model, tracks user challenge enrollments, stay empty if user is TEACHER
+  challenges    Challenge[] // Relationship to the Challenge model, tracks challenge created by a TEACHER, stay empty if user is STUDENT
+  user_role     UserRole // Role of the user : Teacher, Admin, Student
 }
 
 // Session model respresents the user's session.
@@ -38,6 +47,8 @@ model Session {
 // The Challenge model represents coding challenges or courses.
 model Challenge {
   id            Int          @id @default(autoincrement()) // Primary key, auto-incrementing integer
+  authorId      Int // Id of the author
+  author        User         @relation(fields: [authorId], references: [id]) // Relation explicite avec User
   title         String // Title of the challenge
   description   String // Detailed description of the challenge
   difficulty    String? // Optional difficulty level (e.g., Easy, Medium, Hard)

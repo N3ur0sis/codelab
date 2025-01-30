@@ -299,6 +299,124 @@ const testSubmission = async (req, res) => {
   }
 };
 
+/**
+ * Create a new challenge.
+ * Allows an authenticated user to create a challenge with a title, description, difficulty, estimated time,
+ * prerequisites, and stages. The challenge is associated with the user as the author.
+ */
+const createChallenge = async (req, res) => {
+  try {
+    const { title, description, difficulty, estimatedTime, prerequisites, stages } = req.body;
+    const userId = req.user.id; 
+
+    const newChallenge = await prisma.challenge.create({
+      data: {
+        title,
+        description,
+        author: userId,  
+        difficulty,
+        estimatedTime,
+        prerequisites,
+        stages: {
+          create: stages.map(stage => ({
+            title: stage.title,
+            description: stage.description,
+            order: stage.order,
+          })),
+        },
+        author: {  
+          connect: { id: userId },  
+        }
+      },
+    });
+
+    res.status(201).json(newChallenge);
+  } catch (err) {
+    console.error('Error creating challenge:', err);
+    res.status(500).json({ message: 'Failed to create challenge.' });
+  }
+};
+
+/**
+ * Delete a challenge.
+ * Allows an authenticated user (challenge author) to delete a challenge. The challenge, along with its stages 
+ * and enrollments, will be deleted from the database.
+ */
+const deleteChallenge = async (req, res) => {
+  let { id } = req.params;
+  const userId = req.user.id;
+  id = parseInt(id, 10);
+
+  if (isNaN(id)) {return res.status(400).json({ message: 'Invalid challenge ID' });}
+
+  try {
+    //Find the challenge
+    const challenge = await prisma.challenge.findUnique({where: { id },});
+
+    if (!challenge) {return res.status(404).json({ message: 'Challenge not found' }); }
+    if (challenge.authorId !== userId) {return res.status(403).json({ message: 'You do not have permission to delete this challenge.' });}
+
+    // Delete Stage
+    await prisma.stage.deleteMany({where: {challengeId: id,},});
+    // Delete Enrollment
+    await prisma.enrollment.deleteMany({where: {challengeId: id,},});
+    // Delete Challenge
+    await prisma.challenge.delete({where: { id },});
+
+    res.status(200).json({ message: 'Challenge deleted successfully.' });
+  } catch (error) {
+    console.error('Error deleting challenge:', error);
+    res.status(500).json({ message: 'An error occurred while deleting the challenge.' });
+  }
+};
+
+/**
+ * Modify an existing challenge.
+ * Allows an authenticated user (challenge author) to update the challenge's title, description, difficulty,
+ * estimated time, prerequisites, and stages. Only the challenge author can modify it.
+ */
+const modifyChallenge = async (req, res) => {
+  try {
+    const { id } = req.params; 
+    const { title, description, difficulty, estimatedTime, prerequisites, stages } = req.body;
+    const userId = req.user.id;
+
+    // Find the challenge
+    const challenge = await prisma.challenge.findUnique({
+      where: { id: Number(id) },
+    });
+
+    // Some Verifications
+    if (!challenge) {return res.status(404).json({ message: 'Challenge not found.' });}
+    if (challenge.authorId !== userId) {return res.status(403).json({ message: 'You do not have permission to modify this challenge.' }); }
+
+    // Update the challenge with new data
+    const updatedChallenge = await prisma.challenge.update({
+      where: { id: Number(id) },
+      data: {
+        title,
+        description,
+        difficulty,
+        estimatedTime,
+        prerequisites,
+        stages: {
+          deleteMany: {},
+          create: stages.map((stage) => ({
+            title: stage.title,
+            description: stage.description,
+            order: stage.order,
+          })),
+        },
+      },
+    });
+
+    res.status(200).json(updatedChallenge);
+  } catch (err) {
+    console.error('Error modifying challenge:', err);
+    res.status(500).json({ message: 'Failed to modify challenge.' });
+  }
+};
+
 module.exports = {
   getChallenges,
   getChallengeById,
@@ -307,4 +425,7 @@ module.exports = {
   moveToNextStage,
   checkPushStatus,
   testSubmission,
+  createChallenge,
+  deleteChallenge,
+  modifyChallenge,
 };

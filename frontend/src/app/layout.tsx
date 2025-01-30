@@ -9,6 +9,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/NavBar';
+import UserRoleFetcher from '@/components/UserRoleFetcher';
 
 // Configure Geist Sans and Geist Mono fonts
 const geistSans = Geist({
@@ -38,16 +39,23 @@ export const metadata: Metadata = {
  * Props:
  * - children: ReactNode - The content to be rendered inside the layout.
  */
+
 export default function RootLayout({
+  student,
+  teacher,
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+  teacher: React.ReactNode;
+  student: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Navbar />
-        {children}
+        <UserRoleFetcher student={student} teacher={teacher}>
+          {children}
+        </UserRoleFetcher>
       </body>
     </html>
   );
