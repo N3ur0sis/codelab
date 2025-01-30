@@ -298,10 +298,38 @@ const testSubmission = async (req, res) => {
     res.status(500).json({ message: 'Internal server error.' });
   }
 };
-
 const createChallenge = async (req, res) => {
-};
+  try {
+    const { title, description, difficulty, estimatedTime, prerequisites, stages } = req.body;
+    const userId = req.user.id; // Récupérer l'ID de l'utilisateur connecté
 
+    const newChallenge = await prisma.challenge.create({
+      data: {
+        title,
+        description,
+        author: userId,  // Associer l'auteur ici
+        difficulty,
+        estimatedTime,
+        prerequisites,
+        stages: {
+          create: stages.map(stage => ({
+            title: stage.title,
+            description: stage.description,
+            order: stage.order,
+          })),
+        },
+        author: {  
+          connect: { id: userId },  
+        }
+      },
+    });
+
+    res.status(201).json(newChallenge);
+  } catch (err) {
+    console.error('Error creating challenge:', err);
+    res.status(500).json({ message: 'Failed to create challenge.' });
+  }
+};
 module.exports = {
   getChallenges,
   getChallengeById,
