@@ -9,6 +9,7 @@
  * - Move the user to the next stage.
  */
 
+
 const express = require('express');
 const ensureAuth = require('../middleware/ensureAuth');
 const {

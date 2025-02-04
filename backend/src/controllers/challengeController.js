@@ -304,37 +304,73 @@ const testSubmission = async (req, res) => {
  * Allows an authenticated user to create a challenge with a title, description, difficulty, estimated time,
  * prerequisites, and stages. The challenge is associated with the user as the author.
  */
+const formidable = require('formidable');
 const createChallenge = async (req, res) => {
-  try {
-    const { title, description, difficulty, estimatedTime, prerequisites, stages } = req.body;
-    const userId = req.user.id; 
+  const form = new formidable.IncomingForm();
+  form.uploadDir = '../../uploads'; 
+  form.keepExtensions = true;
 
-    const newChallenge = await prisma.challenge.create({
-      data: {
-        title,
-        description,
-        author: userId,  
-        difficulty,
-        estimatedTime,
-        prerequisites,
-        stages: {
-          create: stages.map(stage => ({
-            title: stage.title,
-            description: stage.description,
-            order: stage.order,
-          })),
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      return res.status(500).json({ message: 'Erreur lors de l\'upload du fichier.' });
+    }
+
+    try {
+      const { title, description, difficulty, estimatedTime, prerequisites } = fields;
+      const userId = req.user.id;
+
+      const challengeTitle = String(title).trim(); 
+      const challengeDescription = String(description).trim(); 
+
+      const stages = Object.keys(fields)
+        .filter(key => key.startsWith('stages['))
+        .reduce((acc, key) => {
+          const match = key.match(/stages\[(\d+)\]\.(.+)/);
+          if (match) {
+            const index = Number(match[1]);
+            const field = match[2];
+            acc[index] = acc[index] || {};
+            acc[index][field] = fields[key];
+          }
+          return acc;
+        }, [])
+        .map(stage => ({
+          title: String(stage.title || '').trim(),  
+          description: String(stage.description || '').trim(), 
+          order: stage.order ? Number(stage.order) : 0,  
+        }));
+
+      const newChallenge = await prisma.challenge.create({
+        data: {
+          title: challengeTitle,
+          description: challengeDescription,
+          author: { connect: { id: userId } },
+          stages: {
+            create: stages.map((stage, index) => ({
+              title: stage.title,
+              description: stage.description,
+              order: index + 1,
+            })),
+          },
         },
-        author: {  
-          connect: { id: userId },  
-        }
-      },
-    });
+      });
+      console.log("files", files);
+      const uploadedFiles = files ? Object.keys(files).map(fileKey => ({
+        filePath: files[fileKey][0].filepath, 
+        originalFilename: files[fileKey][0].originalFilename,
+        mimetype: files[fileKey][0].mimetype,
+        size: files[fileKey][0].size
+      })) : [];
 
-    res.status(201).json(newChallenge);
-  } catch (err) {
-    console.error('Error creating challenge:', err);
-    res.status(500).json({ message: 'Failed to create challenge.' });
-  }
+      console.log("Nouveau challenge créé:", newChallenge);
+      console.log("Fichiers téléchargés:", uploadedFiles);
+
+      res.status(201).json({ challenge: newChallenge, files: uploadedFiles });
+    } catch (err) {
+      console.error('Erreur lors de la création du challenge:', err);
+      res.status(500).json({ message: 'Erreur lors de la création du challenge.' });
+    }
+  });
 };
 
 /**

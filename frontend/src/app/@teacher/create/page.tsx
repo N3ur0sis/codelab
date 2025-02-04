@@ -21,13 +21,21 @@ const CreateChallengePage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const [files, setFiles] = useState<File[]>([]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const uploadedFiles = e.target.files;
+    if (uploadedFiles) {
+      setFiles(Array.from(uploadedFiles));
+    }
+  };
   const resetForm = () => {
     setTitle('');
     setDescription('');
     setStages([]);
     setStageTitle('');
     setStageDescription('');
+    setFiles([]);
   };
 
   const addStage = () => {
@@ -50,11 +58,9 @@ const CreateChallengePage = () => {
       [newStages[index], newStages[targetIndex]] = [newStages[targetIndex], newStages[index]];
       setStages(newStages);
     }
-  };
-
-  const handleCreateChallenge = async () => {
-    if (!title.trim() || !description.trim() || stages.length === 0) {
-      setError("Veuillez remplir tous les champs et ajouter au moins une étape.");
+  };const handleCreateChallenge = async () => {
+    if (!title.trim() || !description.trim() || stages.length === 0 ) {
+      setError("Veuillez remplir tous les champs, ajouter au moins une étape.");
       return;
     }
     setError('');
@@ -64,26 +70,40 @@ const CreateChallengePage = () => {
       const responseAuth = await axios.get(`${BACKEND_URL}/auth/session`, { withCredentials: true });
       const userId = responseAuth.data.id;
       const userRole = responseAuth.data.user_role;  
-
+  
       if (userRole !== 'TEACHER') {
         setError("Seul un enseignant peut ajouter un challenge.");
         return;
       }
-
-      const response = await axios.post(`${BACKEND_URL}/challenges/create`, {
-        title,
-        description,
-        authorID: userId, 
-        difficulty: null,
-        estimatedTime: null, 
-        prerequisites: [],
-        stages: stages.map((stage, index) => ({
-          title: stage.title,
-          description: stage.description,
-          order: index + 1,
-        })),
-      }, { withCredentials: true });
-
+  
+      // Création du FormData pour envoyer les fichiers et les données du challenge
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('description', description);
+      formData.append('authorID', userId.toString());
+      formData.append('difficulty', ''); // Vous pouvez mettre une valeur par défaut
+      formData.append('estimatedTime', ''); // Vous pouvez mettre une valeur par défaut
+      formData.append('prerequisites', JSON.stringify([])); // Prérequis vides
+  
+      // Ajouter les étapes
+      stages.forEach((stage, index) => {
+        formData.append(`stages[${index}].title`, stage.title);
+        formData.append(`stages[${index}].description`, stage.description);
+        formData.append(`stages[${index}].order`, (index + 1).toString());
+      });
+  
+      // Ajouter les fichiers
+      files.forEach((file, index) => {
+        formData.append(`files[${index}]`, file);
+      });
+      // Envoi de la requête POST avec les données et les fichiers
+      const response = await axios.post(`${BACKEND_URL}/challenges/create`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        withCredentials: true, 
+      });
+  
       console.log("Challenge ajouté avec succès :", response.data);
       resetForm();
       router.push('/');
@@ -117,6 +137,16 @@ const CreateChallengePage = () => {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="w-full p-2 border rounded"
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block text-sm font-medium">Télécharger un dossier</label>
+        <input
+          type="file"
+          onChange={handleFileChange}
+          className="w-full p-2 border rounded"
+          accept=".zip,.js,.py,.txt,.md,.html,.css"
+          multiple
         />
       </div>
 
