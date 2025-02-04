@@ -9,6 +9,7 @@ async function main() {
       description: 'Implémentez une calculatrice capable de réaliser les 4 opérations de base : addition, soustraction, multiplication, division.',
       difficulty: 'Easy',
       estimatedTime: 30,
+      authorId: 1,
       stages: {
         create: [
           {
