@@ -148,5 +148,6 @@ start_docker_compose
 start_kubernetes_cluster
 configure_worker_kubernetes
 verify_system
+npx smee-client --url https://smee.io/YLDnwNTp96kvUd7 --target http://localhost:4000/webhooks/github
 
-echo "🚀 CodeLab environment is fully set up!"
+echo "🚀 CodeLab environment is fully set up!

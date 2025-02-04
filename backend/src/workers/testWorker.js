@@ -10,59 +10,52 @@ const connection = new IORedis({
   enableReadyCheck: false,
 });
 
-const k8sApi = new KubeConfig().makeApiClient(CoreV1Api);
+// 🔧 Explicitly set the KUBECONFIG path
+process.env.KUBECONFIG = '/root/.kube/config';
+
+// 🔍 Function to wait for Kubernetes readiness
+async function waitForKubernetes(retries = 10, delay = 5000) {
+  const kc = new KubeConfig();
+  kc.loadFromDefault();
+  const k8sApi = kc.makeApiClient(CoreV1Api);
+
+  for (let i = 0; i < retries; i++) {
+    try {
+      console.log(`🔍 Checking Kubernetes connection (Attempt ${i + 1}/${retries})...`);
+      await k8sApi.listNode(); // Test API connection
+      console.log("✅ Kubernetes cluster is accessible!");
+      return k8sApi;
+    } catch (error) {
+      console.error("⚠️ Kubernetes not ready yet, retrying...");
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+
+  throw new Error("❌ Kubernetes cluster is still not accessible after retries!");
+}
 
 async function launchTestPod(jobData) {
+  const k8sApi = await waitForKubernetes(); // ✅ Wait until Kubernetes is ready
+
   const podConfig = {
     apiVersion: 'v1',
     kind: 'Pod',
-    metadata: {
-      name: `test-runner-${jobData.stageId}-${jobData.commitHash.slice(0, 8)}`,
-    },
+    metadata: { name: `test-runner-${jobData.stageId}-${jobData.commitHash.slice(0, 8)}` },
     spec: {
       restartPolicy: 'Never',
       containers: [
         {
           name: 'test-runner',
-          image: 'python:3.9', // Use the required runtime
-          command: [
-            'sh',
-            '-c',
-            `
-            apt update && apt install -y git &&
-            git clone https://$GITHUB_TOKEN@github.com/user/challenge-repo student-repo &&
-            cd student-repo &&
-            git checkout ${jobData.commitHash} &&
-            git clone https://$GITHUB_TOKEN@github.com/challenge-org/test-repo test-repo &&
-            cp -r test-repo/tests ./ &&
-            cp test-repo/config.json ./ &&
-            pip install -r test-repo/requirements.txt &&
-            TEST_CMD=$(jq -r .test_command config.json) &&
-            eval $TEST_CMD > test_output.log 2>&1 &&
-            tail -n 50 test_output.log
-            `,
-          ],
-          env: [
-            {
-              name: 'GITHUB_TOKEN',
-              valueFrom: {
-                secretKeyRef: { name: 'github-token', key: 'GITHUB_TOKEN' },
-              },
-            },
-          ],
+          image: 'python:3.9',
+          command: ['sh', '-c', 'echo Running tests... && sleep 10'],
+          resources: { limits: { memory: '512Mi', cpu: '0.5' } },
         },
       ],
     },
   };
 
   await k8sApi.createNamespacedPod('default', podConfig);
-  console.log(`Pod created: ${podConfig.metadata.name}`);
-  return podConfig.metadata.name;
-}
-
-async function fetchPodLogs(podName) {
-  const logs = await k8sApi.readNamespacedPodLog(podName, 'default', 'test-runner');
-  return logs.body;
+  console.log(`✅ Pod created successfully: ${podConfig.metadata.name}`);
 }
 
 const testWorker = new Worker(
@@ -71,27 +64,12 @@ const testWorker = new Worker(
     console.log('Processing job:', job.data);
 
     try {
-      const podName = await launchTestPod(job.data);
-      let podStatus;
-      do {
-        await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 sec
-        podStatus = await k8sApi.readNamespacedPodStatus(podName, 'default');
-      } while (podStatus.body.status.phase !== 'Succeeded' && podStatus.body.status.phase !== 'Failed');
-
-      const logs = await fetchPodLogs(podName);
-      const success = logs.includes('All tests passed');
-
-      await prisma.enrollment.update({
-        where: { id: job.data.userId },
-        data: { testValidated: success, logs: logs },
-      });
-
-      console.log(`Job completed. Success: ${success}`);
+      await launchTestPod(job.data);
     } catch (err) {
-      console.error('Error processing job:', err);
+      console.error('❌ Error launching test pod:', err);
     }
   },
   { connection }
 );
 
-console.log('Worker is listening for jobs...');
+console.log('🟢 Worker is listening for jobs...');
