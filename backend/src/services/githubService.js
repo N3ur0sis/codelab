@@ -10,9 +10,10 @@
 const jwt = require('jsonwebtoken');
 const { Octokit } = require('@octokit/rest'); 
 const crypto = require('crypto');
+const fs = require('fs').promises;
 
 const APP_ID = process.env.GITHUB_APP_ID;
-const PRIVATE_KEY = process.env.GITHUB_APP_PRIVATE_KEY.replace(/\\n/g, '\n'); // Fix multiline keys
+const PRIVATE_KEY = process.env.GITHUB_APP_PRIVATE_KEY.replace(/\\n/g, '\n');
 const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET;
 
 /**
@@ -157,8 +158,52 @@ const verifyWebhookSignature = (payload, signature) => {
     return false;
   }
 };
+async function createTemplateRepo(repoName, authorUsername, files, owner, description,octokit) {
+  try {
+    console.log('Creating repository :', { repoName, owner });
+
+    const response = await octokit.repos.createForAuthenticatedUser({
+      name: repoName, 
+      private: true,
+      description:description,
+    });
+
+
+    console.log('Repository created successfully:', response.data.html_url);
+
+    await addUserToRepo(authorUsername, repoName, octokit, owner);
+    await addFilesToRepo(files, repoName, octokit, owner);
+
+    return response.data.html_url; 
+  } catch (err) {
+    console.error('Error creating repository for challenge:', err.message);
+    throw err;
+  }
+}
+
+async function addFilesToRepo(files, repoName, octokit, owner) {
+  try {
+    for (const file of files) {
+      const { originalFilename, filePath } = file;
+      console.log('Adding file to repository:', originalFilename);  
+      const fileContent = await fs.readFile(filePath, 'utf-8');
+      await octokit.repos.createOrUpdateFileContents({
+        owner: owner,
+        repo: repoName,
+        path: originalFilename,
+        message: 'Add file to repository',
+        content: Buffer.from(fileContent).toString('base64'),
+      });
+    }
+  } catch (err) {
+    console.error('Error adding files to repository:', err.message);
+    throw err;
+  }
+}
 
 
 
 
-module.exports = { createRepoForChallenge, verifyWebhookSignature, deleteRepo, checkRepoExists, getInstallationToken };
+
+module.exports = { createRepoForChallenge, verifyWebhookSignature, deleteRepo, checkRepoExists, getInstallationToken, createTemplateRepo,};
+

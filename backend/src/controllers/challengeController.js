@@ -8,13 +8,15 @@
  * - Fetch the current stage of a user's enrollment.
  * - Move the user to the next stage.
  */
-
+const AdmZip = require('adm-zip');
+const fs = require('fs');
+const path = require('path');
 const prisma = require('../lib/prisma');
 const { Octokit } = require('@octokit/rest'); 
-const { createRepoForChallenge, getInstallationToken, deleteRepo, checkRepoExists } = require('../services/githubService');
-
+const { createRepoForChallenge, getInstallationToken, deleteRepo, checkRepoExists,createTemplateRepo } = require('../services/githubService');
+const GITHUB_ACCESS_TOKEN = process.env.GITHUB_PERSONNAL_ACCESS_TOKEN;
 /**
- * Fetch all challenges available in the system.
+ * Fetch all challenges available in the system. 
  * Returns an array of challenges with metadata.
  */
 const getChallenges = async (req, res) => {
@@ -307,7 +309,13 @@ const testSubmission = async (req, res) => {
 const formidable = require('formidable');
 const createChallenge = async (req, res) => {
   const form = new formidable.IncomingForm();
-  form.uploadDir = '../../uploads'; 
+  const uploadDir = path.join(__dirname, '../../uploads');
+
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+
+  form.uploadDir = uploadDir;
   form.keepExtensions = true;
 
   form.parse(req, async (err, fields, files) => {
@@ -345,7 +353,7 @@ const createChallenge = async (req, res) => {
           title: challengeTitle,
           description: challengeDescription,
           author: { connect: { id: userId } },
-          stages: {
+          stages: {  
             create: stages.map((stage, index) => ({
               title: stage.title,
               description: stage.description,
@@ -354,17 +362,52 @@ const createChallenge = async (req, res) => {
           },
         },
       });
-      console.log("files", files);
-      const uploadedFiles = files ? Object.keys(files).map(fileKey => ({
-        filePath: files[fileKey][0].filepath, 
-        originalFilename: files[fileKey][0].originalFilename,
-        mimetype: files[fileKey][0].mimetype,
-        size: files[fileKey][0].size
-      })) : [];
+
+      const uploadedFiles = [];
+      for (let fileKey in files) {
+        const file = files[fileKey][0];
+        if (file.mimetype === 'application/zip' && file.filepath) {
+          if (!fs.existsSync(file.filepath)) {
+            console.error("Le fichier ZIP n'existe pas :", file.filepath);
+            return res.status(400).json({ message: "Fichier ZIP introuvable." });
+          }
+          const zip = new AdmZip(file.filepath);
+          const zipEntries = zip.getEntries();
+          const extractDir = path.join(uploadDir, "template", newChallenge.id.toString());
+          zip.extractAllTo(extractDir, true);
+
+          for (const zipEntry of zipEntries) {
+            const entryName = zipEntry.entryName;
+            if (!zipEntry.isDirectory && !entryName.startsWith('__MACOSX') && !entryName.endsWith('/')) {
+                uploadedFiles.push({
+                filePath: path.join(extractDir, entryName),
+                originalFilename: path.basename(entryName),
+                mimetype: 'text/plain',
+                size: zipEntry.header.size,
+                });
+            }
+          }
+        } else {
+          uploadedFiles.push({
+            filePath: file.filepath,
+            originalFilename: file.originalFilename,
+            mimetype: file.mimetype,
+            size: file.size
+          });
+        }
+      }
+    
+      console.log("Uploaded files:", uploadedFiles);
+
+
+      const repoName = `challenge-${newChallenge.id}-template`;
+      const owner = 'SoloDesignDev';
+      const octokit = new Octokit({ auth: GITHUB_ACCESS_TOKEN });
+      const repoUrl = await createTemplateRepo(repoName, req.user.username, uploadedFiles, owner,description,octokit);
 
       console.log("Nouveau challenge créé:", newChallenge);
-      console.log("Fichiers téléchargés:", uploadedFiles);
-
+      console.log("URL du dépôt:", repoUrl);
+      
       res.status(201).json({ challenge: newChallenge, files: uploadedFiles });
     } catch (err) {
       console.error('Erreur lors de la création du challenge:', err);
