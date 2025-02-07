@@ -108,7 +108,7 @@ const enrollChallenge = async (req, res) => {
     const octokit = new Octokit({ auth: installationToken });
 
     const templateOwner = owner;
-    const templateRepo = 'challenge-template'; // Template repository name
+    const templateRepo = `challenge-${challengeId}-template`;
 
     
     const repoExists = await checkRepoExists(owner, repoName, octokit);
