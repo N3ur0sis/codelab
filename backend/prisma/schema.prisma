@@ -16,6 +16,13 @@ enum UserRole {
   ADMIN
   STUDENT
 }
+// Define all different language for a challenge
+enum Language {
+  C
+  PYTHON
+  JAVA
+}
+
 
 // The User model represents application users.
 model User {
@@ -58,7 +65,8 @@ model Challenge {
   stages        Stage[] // Relationship to the Stage model, contains the stages of this challenge
   createdAt     DateTime     @default(now()) // Timestamp of when the challenge was created
   Enrollment    Enrollment[] // Relationship to the Enrollment model, tracks user enrollments for this challenge
-  repoTemplateUrl       String? // Url for the repo created by the teacher
+  repoTemplateUrl       String? // Url for the repo created by the Teacher
+  language      Language // Language of a challenge
 }
 
 // The Stage model represents individual stages or levels within a challenge.

@@ -324,11 +324,12 @@ const createChallenge = async (req, res) => {
     }
 
     try {
-      const { title, description, difficulty, estimatedTime, prerequisites } = fields;
+      const { title, description,language, difficulty, estimatedTime, prerequisites } = fields;
       const userId = req.user.id;
 
       const challengeTitle = String(title).trim(); 
       const challengeDescription = String(description).trim(); 
+      const challengeLanguage = String(language).trim();
 
       // Fetch stages from form fields
       const stages = Object.keys(fields)
@@ -353,6 +354,7 @@ const createChallenge = async (req, res) => {
           data: {
             title: challengeTitle,
             description: challengeDescription,
+            language: challengeLanguage,
             author: { connect: { id: userId } },
             stages: {  
               create: stages.map((stage, index) => ({

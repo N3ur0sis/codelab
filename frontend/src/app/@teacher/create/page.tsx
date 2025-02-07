@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+const availableLanguages = ['C', 'PYTHON', 'JAVA'];
 
 interface Stage {
   id: number;
@@ -16,6 +17,7 @@ const CreateChallengePage = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [stages, setStages] = useState<Stage[]>([]);
+  const [language, setLanguage] = useState(availableLanguages[0]);
   const [stageTitle, setStageTitle] = useState('');
   const [stageDescription, setStageDescription] = useState('');
   const [loading, setLoading] = useState(false);
@@ -40,6 +42,7 @@ const CreateChallengePage = () => {
     setStageTitle('');
     setStageDescription('');
     setFiles([]);
+    setLanguage(availableLanguages[0]);
   };
 
   const addStage = () => {
@@ -87,6 +90,7 @@ const CreateChallengePage = () => {
       formData.append('title', title);
       formData.append('description', description);
       formData.append('authorID', userId.toString());
+      formData.append('language', language);
       formData.append('difficulty', ''); 
       formData.append('estimatedTime', '');
       formData.append('prerequisites', JSON.stringify([])); 
@@ -111,7 +115,7 @@ const CreateChallengePage = () => {
         withCredentials: true, 
       });
   
-      
+
       console.log("Challenge ajouté avec succès :", response.data);
       resetForm();
       router.push('/');
@@ -146,6 +150,18 @@ const CreateChallengePage = () => {
           onChange={(e) => setDescription(e.target.value)}
           className="w-full p-2 border rounded"
         />
+      </div>
+      <div className="mb-4">
+        <label className="block text-sm font-medium">Langage du Challenge</label>
+        <select
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
+          {availableLanguages.map(lang => (
+            <option key={lang} value={lang}>{lang}</option>
+          ))}
+        </select>
       </div>
       <div className="mb-4">
         <label className="block text-sm font-medium">Télécharger un dossier</label>
