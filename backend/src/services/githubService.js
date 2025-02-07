@@ -67,9 +67,8 @@ async function createRepoForChallenge(repoName, username, templateRepo, template
     });
 
 
-    // 1. Créez le dépôt à partir d'un template
     const response = await octokit.repos.createUsingTemplate({
-      template_owner: templateOwner, // Owner of the template repo
+      template_owner: templateOwner,
       template_repo: templateRepo, // Name of the template repo
       owner: owner, // Target owner (your account or organization)
       name: repoName, // New repo name
@@ -158,10 +157,13 @@ const verifyWebhookSignature = (payload, signature) => {
     return false;
   }
 };
+
+/**
+ * Create a template repository by a teacher.
+ */
 async function createTemplateRepo(repoName, authorUsername, files, owner, description,octokit) {
   try {
-    console.log('Creating repository :', { repoName, owner });
-
+    // Create a new repository
     const response = await octokit.repos.createForAuthenticatedUser({
       name: repoName, 
       private: true,
@@ -169,8 +171,7 @@ async function createTemplateRepo(repoName, authorUsername, files, owner, descri
     });
 
 
-    console.log('Repository created successfully:', response.data.html_url);
-
+    // Add the teacher as a collaborator and add files to the repository
     await addUserToRepo(authorUsername, repoName, octokit, owner);
     await addFilesToRepo(files, repoName, octokit, owner);
 
@@ -185,8 +186,9 @@ async function addFilesToRepo(files, repoName, octokit, owner) {
   try {
     for (const file of files) {
       const { originalFilename, filePath } = file;
-      console.log('Adding file to repository:', originalFilename);  
       const fileContent = await fs.readFile(filePath, 'utf-8');
+
+      // Add file to repository
       await octokit.repos.createOrUpdateFileContents({
         owner: owner,
         repo: repoName,

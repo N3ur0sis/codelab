@@ -330,6 +330,7 @@ const createChallenge = async (req, res) => {
       const challengeTitle = String(title).trim(); 
       const challengeDescription = String(description).trim(); 
 
+      // Fetch stages from form fields
       const stages = Object.keys(fields)
         .filter(key => key.startsWith('stages['))
         .reduce((acc, key) => {
@@ -348,6 +349,7 @@ const createChallenge = async (req, res) => {
           order: stage.order ? Number(stage.order) : 0,  
         }));
 
+      // Create the challenge in the database
       const newChallenge = await prisma.challenge.create({
         data: {
           title: challengeTitle,
@@ -363,6 +365,7 @@ const createChallenge = async (req, res) => {
         },
       });
 
+      // Fetch files uploaded with the form
       const uploadedFiles = [];
       for (let fileKey in files) {
         const file = files[fileKey][0];
@@ -399,7 +402,7 @@ const createChallenge = async (req, res) => {
     
       console.log("Uploaded files:", uploadedFiles);
 
-
+      // Create a new repository for the challenge template
       const repoName = `challenge-${newChallenge.id}-template`;
       const owner = 'SoloDesignDev';
       const octokit = new Octokit({ auth: GITHUB_ACCESS_TOKEN });

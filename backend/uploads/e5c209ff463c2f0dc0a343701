@@ -1,0 +1,246 @@
+@startuml
+
+' Définition des rôles utilisateurs
+class Rôle {
+    +rôleId : Integer
+    +nomRôle : String
+    +permissions : String
+}
+
+' Définition de la classe de base Utilisateur
+class Utilisateur {
+    +utilisateurId : Integer
+    +nom : String
+    +email : String
+    +motDePasse : String
+}
+
+Utilisateur "1" --> "1" Rôle : "a pour rôle"
+
+' Spécialisation de Utilisateur en Candidat, Recruteur, Directeur
+class Candidat {
+    +informationsDeContact : String
+    +consentementPourTraitementDesDonnées : Boolean
+    +tableauDeBordPersonnel : TableauDeBord
+    +postule(Integer idCandidat,Integer offreId,String cV,String lettreMotivation,String date)
+}
+
+class Recruteur {
+    +département : String
+    +ajouterOffre(idRecruteur, titre, description, dates, qualifications)
+}
+
+class Directeur {
+    +validationOffre(idDirecteur,offreId)
+}
+
+Utilisateur <|-- Candidat
+Utilisateur <|-- Recruteur
+Utilisateur <|-- Directeur
+
+' Définition de la classe ControleurOffreEmploi
+class ContrôleurOffre {
+    +ajouterOffre(int idRecruteur, String titre, String description, Date dates, String qualifications)
+    +checkPermissions(int idRecruteur): boolean
+    +creerOffre(String titre, String description, Date dates, String qualifications): OffreEmploi
+    +mettreÀJourStatut(String statut)
+    +stockerOffre(OffreEmploi offreEmploi)
+    +creerNotification(int idRecruteur, int idDirecteur, int idDemandeur, OffreEmploi offre): Notification
+    +stockerNotification(Notification notification)
+    +envoiNotification(Notification notification)
+}
+' Définition de la classe OffreEmploi
+class OffreEmploi {
+    +offreId : Integer
+    +titre : String
+    +descriptionDuPoste : String
+    +qualificationsRequises : String
+    +statut : StatutOffre
+    +datePublication : Date
+    +dateExpiration : Date
+    +valider()
+    +supprimer()
+    +publier()
+    +expirer()
+    +suspendre()
+    +archiver()
+}
+
+enum StatutOffre {
+    nonValidee
+    validee 
+    supprimee 
+    publiee
+    expiree
+    suspendue
+    archivee
+}
+
+ContrôleurOffre "1" --> "*" OffreEmploi : "gère"
+ContrôleurOffre "1" --> "*" Notification : "Envoie"
+
+' Relation entre OffreEmploi et Recruteur/Directeur
+Recruteur "1" --> "*" OffreEmploi : "gère"
+Directeur "1" --> "*" OffreEmploi : "gère"
+class ContrôleurCandidature {
+    +postule(int idCandidat, int offreId, CV cV, LettreMotivation lettreMotivation, Date date)
+    +checkPermissions(int idCandidat): boolean
+    +creerCandidature(int idCandidat, int offreId, Date date): Candidature
+    +ajoutCV(CV cV, int offreId)
+    +ajoutLettreMotivation(LettreMotivation lettreMotivation, int offreId)
+    +ajoutCandidature(Candidature candidature)
+}
+' Définition de la classe Candidature
+class Candidature {
+    +candidatureId : Integer
+    +statut : StatutCandidature
+    +dateSoumission : Date
+}
+
+enum StatutCandidature {
+    en_attente
+    accepté
+    rejeté
+    entretien_planifié
+}
+ContrôleurCandidature "1" --> "*" Candidature : "gère"
+Candidat "1" --> "*" Candidature : "soumet"
+Candidature "*" --> "1" OffreEmploi : "pour"
+
+' Définition des documents CV et LettreDeMotivation
+class Document {
+    +documentId : Integer
+    +typeFichier : String
+    +tailleFichier : Integer
+    +dateUpload : Date
+}
+
+class CV {
+    +format : String
+    +taille : Integer
+    +duréeStockage : Integer
+}
+
+class LettreDeMotivation {
+    +format : String
+    +nombreMots : Integer
+}
+
+Document <|-- CV
+Document <|-- LettreDeMotivation
+
+Candidat "1" --> "1" CV : "soumet"
+Candidat "1" --> "1" LettreDeMotivation : "soumet"
+
+Candidature "1" --> "1" CV
+Candidature "1" --> "1" LettreDeMotivation
+
+' Définition de l'entretien
+class Entretien {
+    +entretienId : Integer
+    +dateHeure : DateTime
+    +lieuOuLien : String
+    +statut : StatutEntretien
+}
+
+enum StatutEntretien {
+    planifié
+    réalisé
+    annulé
+}
+
+Entretien "1" --> "1" Candidature
+Recruteur "1" --> "*" Entretien : "programme"
+Candidat "1" --> "*" Entretien : "participe à"
+
+' Définition de la base de talents
+class BaseDeTalents {
+    +dateCréation : Date
+    +duréeRétention : Integer
+}
+
+class ProfilTalent {
+    +compétences : List<Compétence>
+    +expérience : String
+    +tags : List<String>
+}
+
+BaseDeTalents "1" --> "*" ProfilTalent
+Candidat "1" --> "1" ProfilTalent : "est"
+
+' Définition des compétences
+class Compétence {
+    +compétenceId : Integer
+    +nomCompétence : String
+}
+
+Candidat "*" --> "*" Compétence : "possède"
+OffreEmploi "*" --> "*" Compétence : "requiert"
+
+' Plateformes de publication
+class Plateforme {
+    +plateformeId : Integer
+    +nomPlateforme : String
+}
+
+OffreEmploi "*" --> "*" Plateforme : "publiée sur"
+
+' Statistiques liées à l'offre
+class Statistiques {
+    +nombreDeVues : Integer
+    +nombreDeCandidatures : Integer
+    +tauxDeConversion : Float
+}
+
+OffreEmploi "1" --> "1" Statistiques : "a"
+
+' Notifications
+class Notification {
+    +notificationId : Integer
+    +type : String
+    +dateEnvoi : Date
+    +contenu : String
+}
+
+Utilisateur "1" <-- "*" Notification : "reçoit"
+
+' Historique des actions
+class HistoriqueActions {
+    +actionId : Integer
+    +utilisateurId : Integer
+    +typeAction : String
+    +horodatage : DateTime
+}
+
+Utilisateur "1" --> "*" HistoriqueActions : "effectue"
+
+' Calendrier et événements
+class Calendrier {
+    +calendrierId : Integer
+    +événements : List<Événement>
+}
+
+class Événement {
+    +événementId : Integer
+    +titre : String
+    +dateHeure : DateTime
+    +participants : List<Utilisateur>
+}
+
+Calendrier "1" --> "*" Événement
+Recruteur "1" --> "1" Calendrier : "utilise"
+Candidat "1" --> "1" Calendrier : "utilise"
+
+Événement "*" <-- "*" Utilisateur : "participe à"
+
+' Feedback des candidats
+class Feedback {
+    +feedbackId : Integer
+    +contenu : String
+    +dateSoumission : Date
+}
+
+Candidat "1" --> "*" Feedback : "soumet"
+Candidature "1" --> "*" Feedback
+
+@enduml

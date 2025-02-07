@@ -26,9 +26,13 @@ const CreateChallengePage = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const uploadedFiles = e.target.files;
     if (uploadedFiles) {
-      setFiles(Array.from(uploadedFiles));
+      setFiles(prevFiles => [...prevFiles, ...Array.from(uploadedFiles)]);
     }
   };
+  const removeFile = (index: number) => {
+    setFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
+  };
+
   const resetForm = () => {
     setTitle('');
     setDescription('');
@@ -58,7 +62,9 @@ const CreateChallengePage = () => {
       [newStages[index], newStages[targetIndex]] = [newStages[targetIndex], newStages[index]];
       setStages(newStages);
     }
-  };const handleCreateChallenge = async () => {
+  };
+  
+  const handleCreateChallenge = async () => {
     if (!title.trim() || !description.trim() || stages.length === 0 ) {
       setError("Veuillez remplir tous les champs, ajouter au moins une étape.");
       return;
@@ -75,28 +81,29 @@ const CreateChallengePage = () => {
         setError("Seul un enseignant peut ajouter un challenge.");
         return;
       }
-  
-      // Création du FormData pour envoyer les fichiers et les données du challenge
+      
+      // Creation of the form data
       const formData = new FormData();
       formData.append('title', title);
       formData.append('description', description);
       formData.append('authorID', userId.toString());
-      formData.append('difficulty', ''); // Vous pouvez mettre une valeur par défaut
-      formData.append('estimatedTime', ''); // Vous pouvez mettre une valeur par défaut
-      formData.append('prerequisites', JSON.stringify([])); // Prérequis vides
+      formData.append('difficulty', ''); 
+      formData.append('estimatedTime', '');
+      formData.append('prerequisites', JSON.stringify([])); 
   
-      // Ajouter les étapes
+      // Add stages
       stages.forEach((stage, index) => {
         formData.append(`stages[${index}].title`, stage.title);
         formData.append(`stages[${index}].description`, stage.description);
         formData.append(`stages[${index}].order`, (index + 1).toString());
       });
   
-      // Ajouter les fichiers
+      // Add files
       files.forEach((file, index) => {
         formData.append(`files[${index}]`, file);
       });
-      // Envoi de la requête POST avec les données et les fichiers
+
+      // Send the request to the backend
       const response = await axios.post(`${BACKEND_URL}/challenges/create`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -104,6 +111,7 @@ const CreateChallengePage = () => {
         withCredentials: true, 
       });
   
+      
       console.log("Challenge ajouté avec succès :", response.data);
       resetForm();
       router.push('/');
@@ -150,6 +158,22 @@ const CreateChallengePage = () => {
         />
       </div>
 
+      {/* Liste des fichiers sélectionnés */}
+      {files.length > 0 && (
+        <ul className="mt-2 space-y-2">
+          {files.map((file, index) => (
+            <li key={index} className="flex items-center justify-between p-2 border rounded bg-gray-100">
+              <span className="truncate">{file.name}</span>
+              <button
+                onClick={() => removeFile(index)}
+                className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                ✖
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
       {/* ADD STAGE FORM */}
       <h2 className="text-lg font-bold mt-4">Ajouter une Étape</h2>
       <div className="mb-4">
