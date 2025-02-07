@@ -348,23 +348,22 @@ const createChallenge = async (req, res) => {
           description: String(stage.description || '').trim(), 
           order: stage.order ? Number(stage.order) : 0,  
         }));
-
-      // Create the challenge in the database
-      const newChallenge = await prisma.challenge.create({
-        data: {
-          title: challengeTitle,
-          description: challengeDescription,
-          author: { connect: { id: userId } },
-          stages: {  
-            create: stages.map((stage, index) => ({
-              title: stage.title,
-              description: stage.description,
-              order: index + 1,
-            })),
+        // Create the challenge in the database
+        const newChallenge = await prisma.challenge.create({
+          data: {
+            title: challengeTitle,
+            description: challengeDescription,
+            author: { connect: { id: userId } },
+            stages: {  
+              create: stages.map((stage, index) => ({
+                title: stage.title,
+                description: stage.description,
+                order: index + 1,
+              })),
+            },
           },
-        },
-      });
-
+        });
+ 
       // Fetch files uploaded with the form
       const uploadedFiles = [];
       for (let fileKey in files) {
@@ -406,12 +405,19 @@ const createChallenge = async (req, res) => {
       const repoName = `challenge-${newChallenge.id}-template`;
       const owner = 'SoloDesignDev';
       const octokit = new Octokit({ auth: GITHUB_ACCESS_TOKEN });
-      const repoUrl = await createTemplateRepo(repoName, req.user.username, uploadedFiles, owner,description,octokit);
+      const repoUrl = await createTemplateRepo(repoName, req.user.username, uploadedFiles, owner,challengeDescription,octokit);
 
-      console.log("Nouveau challenge créé:", newChallenge);
-      console.log("URL du dépôt:", repoUrl);
-      
-      res.status(201).json({ challenge: newChallenge, files: uploadedFiles });
+
+      // Update the challenge with the repository URL
+      await prisma.challenge.update({
+        where: { id: newChallenge.id },
+        data: { repoTemplateUrl : repoUrl
+        
+         },
+      });
+
+      console.log("Nouveau challenge créé:", newChallenge);      
+      res.status(201).json({ challenge: newChallenge});
     } catch (err) {
       console.error('Erreur lors de la création du challenge:', err);
       res.status(500).json({ message: 'Erreur lors de la création du challenge.' });

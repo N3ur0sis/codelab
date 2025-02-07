@@ -58,6 +58,7 @@ model Challenge {
   stages        Stage[] // Relationship to the Stage model, contains the stages of this challenge
   createdAt     DateTime     @default(now()) // Timestamp of when the challenge was created
   Enrollment    Enrollment[] // Relationship to the Enrollment model, tracks user enrollments for this challenge
+  repoTemplateUrl       String? // Url for the repo created by the teacher
 }
 
 // The Stage model represents individual stages or levels within a challenge.
@@ -68,7 +69,6 @@ model Stage {
   order       Int // Order of the stage within the challenge
   challengeId Int // Foreign key referencing the Challenge model
   challenge   Challenge     @relation(fields: [challengeId], references: [id]) // Relationship to the Challenge model
-
   @@unique([challengeId, order]) // Ensures that each stage order is unique within a challenge
 }
 
