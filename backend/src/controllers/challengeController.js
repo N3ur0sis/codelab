@@ -404,6 +404,7 @@ const createChallenge = async (req, res) => {
       console.log("Uploaded files:", uploadedFiles);
 
       // Create a new repository for the challenge template
+      
       const repoName = `challenge-${newChallenge.id}-template`;
       const owner = 'SoloDesignDev';
       const octokit = new Octokit({ auth: GITHUB_ACCESS_TOKEN });
@@ -417,6 +418,11 @@ const createChallenge = async (req, res) => {
         
          },
       });
+    
+    // Clear the upload directory (Maybe its the not the best way to clear the directory)
+    fs.rmdirSync(uploadDir, { recursive: true });
+    
+
 
       console.log("Nouveau challenge créé:", newChallenge);      
       res.status(201).json({ challenge: newChallenge});
