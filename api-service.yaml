@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubernetes-api-service
+  namespace: default
+spec:
+  type: NodePort
+  selector:
+    component: kube-apiserver
+  ports:
+  - protocol: TCP
+    port: 6443
+    targetPort: 6443
+    nodePort: 30443  # Expose on a high port (e.g., 30443)

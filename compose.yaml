@@ -71,12 +71,20 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - POSTGRES_URL=postgresql://postgres:postgres@db:5432/postgres?schema=public
-      - KUBECONFIG=/root/.kube/config # ✅ Set Kubeconfig Path
+      - KUBECONFIG=/root/.kube/config
+      - KUBERNETES_SERVER=https://172.19.0.1:41503  # ✅ Use Kind's internal network IP
     env_file:
       - .env.development
     volumes:
-      - ~/.kube:/root/.kube # ✅ Mount Kubernetes config inside worker
+      - ~/.kube:/root/.kube
+      - ./backend:/usr/src/app 
+    networks:
+      - kind  # ✅ Attach worker to the Kind network
     command: ["node", "src/workers/testWorker.js"]
+
+networks:
+  kind:
+    external: true
 
 volumes:
   pgdata: {}
