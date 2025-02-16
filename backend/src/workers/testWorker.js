@@ -55,20 +55,20 @@ async function launchTestPod(jobData) {
               'sh',
               '-c',
               `
-              apt update && apt install -y git jq &&
+              sudo apt clean && sudo apt update && sudo apt upgrade && sudo apt install -y git jq && sudo apt install --reinstall ca-certificates
               echo "🚀 Cloning student repository..." &&
-              git clone https://$GITHUB_TOKEN@github.com/${jobData.repoUrl} student-repo &&
+              git clone https://$GITHUB_TOKEN@github.com/${jobData.repoUrl.replace('https://github.com/', '')} student-repo &&
               cd student-repo &&
               git checkout ${jobData.commitHash} &&
               echo "✅ Student repo cloned."
 
               echo "🚀 Cloning test repository..." &&
-              git clone https://github.com/N3ur0sis/challenge-test test-repo &&
+              git -c http.sslVerify=false clone https://github.com/N3ur0sis/challenge-test test-repo &&
               cp -r test-repo/tests ./ &&
               cp test-repo/config.json ./ &&
               echo "✅ Test repo cloned and tests copied."
 
-              pip install -r test-repo/requirements.txt &&
+              pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host=files.pythonhosted.org -r test-repo/requirements.txt &&
               TEST_CMD=$(jq -r .test_command config.json) &&
               echo "🚀 Running tests..." &&
               eval $TEST_CMD > test_output.log 2>&1 &&

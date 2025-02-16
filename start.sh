@@ -105,7 +105,8 @@ start_docker_compose() {
 start_kubernetes_cluster() {
   if ! kind get clusters | grep -q "codelab-cluster"; then
     echo "📌 Creating Kubernetes cluster (kind)..."
-    kind create cluster --name codelab-cluster
+    kind create cluster --name codelab-cluster --config kind-config.yaml
+
   else
     echo "✅ Kubernetes cluster already exists."
   fi
@@ -124,8 +125,8 @@ configure_worker_kubernetes() {
   docker exec worker mkdir -p /root/.kube
 
   echo "🔧 Copying Kubernetes config into Worker..."
-  docker cp ~/.kube/config worker:/root/.kube/config
-
+  docker cp ./worker_kube_config worker:/root/.kube/config
+  docker restart worker
   echo "✅ Kubernetes config successfully copied!"
 }
 

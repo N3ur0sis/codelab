@@ -1,0 +1,4 @@
+Fix start script to include the following
+- Get the correct ip for the kube/config file
+- Incude the github token secret from the env
+- docker network connect codelab_default worker
